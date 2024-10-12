@@ -1,5 +1,4 @@
-﻿using Core.BaseModels.Interfaces;
-using System;
+﻿using System;
 
 namespace Core.BaseModels
 {

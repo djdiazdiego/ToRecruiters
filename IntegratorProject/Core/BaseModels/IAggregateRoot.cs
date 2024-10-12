@@ -1,7 +1,7 @@
 ﻿using Core.Features;
 using System.Collections.Generic;
 
-namespace Core.BaseModels.Interfaces
+namespace Core.BaseModels
 {
     public interface IAggregateRoot : IEntity
     {

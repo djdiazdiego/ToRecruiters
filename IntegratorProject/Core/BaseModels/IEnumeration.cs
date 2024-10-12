@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Core.BaseModels.Interfaces
+namespace Core.BaseModels
 {
     public interface IEnumeration : IEntity, IComparable
     {

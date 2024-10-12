@@ -1,5 +1,4 @@
-﻿using Core.BaseModels.Interfaces;
-using Core.Features;
+﻿using Core.Features;
 using System.Collections.Generic;
 
 namespace Core.BaseModels
