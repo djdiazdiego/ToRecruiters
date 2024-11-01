@@ -1,5 +1,5 @@
-﻿using Core.Features;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Core.DomainEvents;
 
 namespace Core.BaseModels
 {
@@ -14,18 +14,18 @@ namespace Core.BaseModels
         /// Add domain event
         /// </summary>
         /// <param name="event"></param>
-        void AddDomainEvent(Event @event);
+        void AddDomainEvent(IDomainEvent @event);
 
         /// <summary>
         /// Remove domain event
         /// </summary>
         /// <param name="event"></param>
-        void RemoveDomainEvent(Event @event);
+        void RemoveDomainEvent(IDomainEvent @event);
 
         /// <summary>
         /// Get domain events from an aggregate
         /// </summary>
         /// <returns></returns>
-        IReadOnlyCollection<Event> GetDomainEvents();
+        IReadOnlyCollection<IDomainEvent> GetDomainEvents();
     }
 }

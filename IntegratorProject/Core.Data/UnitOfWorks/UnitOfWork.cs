@@ -1,6 +1,6 @@
 ﻿using Core.BaseModels;
 using Core.Data.Repositories;
-using Core.Features;
+using Core.DomainEvents;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -88,7 +88,7 @@ namespace Core.Data.UnitOfWorks
             }
         }
 
-        private List<Event> GetEvents()
+        private List<IDomainEvent> GetEvents()
         {
             var aggregates = _context.ChangeTracker.Entries()
                 .Where(e => (e.State == EntityState.Modified || e.State == EntityState.Added || e.State == EntityState.Deleted) &&
@@ -97,7 +97,7 @@ namespace Core.Data.UnitOfWorks
                 .Cast<IAggregateRoot>()
                 .ToArray();
 
-            var events = new List<Event>();
+            var events = new List<IDomainEvent>();
 
             if (aggregates != null && aggregates.Length != 0)
             {
@@ -112,7 +112,7 @@ namespace Core.Data.UnitOfWorks
             return events;
         }
 
-        private async Task PublishDomainEventsAsync(List<Event> events, CancellationToken cancellationToken = default)
+        private async Task PublishDomainEventsAsync(List<IDomainEvent> events, CancellationToken cancellationToken = default)
         {
             var tasks = new List<Task>();
 

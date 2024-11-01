@@ -1,7 +1,6 @@
-﻿using Core.Exceptions;
-using System;
+﻿using Core.Head.Exceptions;
 
-namespace Core.Helpers
+namespace Core.Head.Helpers
 {
     public static class ExceptionHelpers
     {

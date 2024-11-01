@@ -1,12 +1,12 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Core.Wrappers
+namespace Core.Head.Wrappers
 {
     /// <summary>
     /// Custom response
     /// </summary>
     [DataContract]
-    public class Response
+    public class Response : IResponse
     {
         public Response(bool isSuccess, int code, string errorMessage)
         {
@@ -40,7 +40,8 @@ namespace Core.Wrappers
     /// Custom response with extra data
     /// </summary>
     [DataContract]
-    public sealed class Response<TData> : Response
+    public sealed class Response<TData> : Response, IResponse<TData> where TData : class
+
     {
         public Response(bool isSuccess, int code, string errorMessage, TData data) : base(isSuccess, code, errorMessage)
         {

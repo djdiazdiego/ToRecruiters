@@ -1,7 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace Core.Exceptions
+namespace Core.Head.Exceptions
 {
     public sealed class AlreadyExistsException : Exception
     {

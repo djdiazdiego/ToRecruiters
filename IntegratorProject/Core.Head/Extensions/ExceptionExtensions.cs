@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Core.Extensions
+﻿namespace Core.Head.Extensions
 {
     public static class ExceptionExtensions
     {
@@ -14,7 +10,7 @@ namespace Core.Extensions
         public static string GetAllMessages(this Exception exception)
         {
             var messages = exception.FromHierarchy(ex => ex.InnerException)
-                .Select(ex => ex.Message.Trim(new char[] { ' ', '.' }));
+                .Select(ex => ex.Message.Trim([' ', '.']));
 
             return string.Join(". ", messages);
         }
@@ -34,6 +30,6 @@ namespace Core.Extensions
             this TSource source,
             Func<TSource, TSource> nextItem)
             where TSource : class
-            => FromHierarchy(source, nextItem, s => s != null);
+            => source.FromHierarchy(nextItem, s => s != null);
     }
 }
