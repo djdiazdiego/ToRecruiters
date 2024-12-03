@@ -5,7 +5,7 @@ namespace Core.BaseModels
     public abstract class Enumeration<TKey> : Entity<TKey>, IEnumeration
         where TKey : Enum
     {
-        private string _name;
+        private string _name = string.Empty;
 
         protected Enumeration() { }
 
