@@ -2,12 +2,14 @@
 
 namespace Core.Head.CQRS
 {
-    public interface ICommand<TResponse> : IRequest<TResponse>
+    public interface IBaseCommand { }
+
+    public interface ICommand<TResponse> : IRequest<TResponse>, IBaseCommand
         where TResponse : class
     {
     }
 
-    public interface ICommand : IRequest
+    public interface ICommand : IRequest, IBaseCommand
     {
     }
 }

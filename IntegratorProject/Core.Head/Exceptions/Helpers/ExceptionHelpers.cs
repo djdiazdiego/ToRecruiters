@@ -1,6 +1,4 @@
-﻿using Core.Head.Exceptions;
-
-namespace Core.Head.Helpers
+﻿namespace Core.Head.Exceptions.Helpers
 {
     public static class ExceptionHelpers
     {

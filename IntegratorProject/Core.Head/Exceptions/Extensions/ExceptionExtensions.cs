@@ -1,4 +1,4 @@
-﻿namespace Core.Head.Extensions
+﻿namespace Core.Head.Exceptions.Extensions
 {
     public static class ExceptionExtensions
     {

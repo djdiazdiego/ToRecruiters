@@ -1,21 +1,16 @@
-﻿using Core.Head.Exceptions;
-using Core.Head.Extensions;
+﻿using Core.Head.Exceptions.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Core.Head.Handlers;
-public sealed class GlobalExceptionHandler
-    (ILogger<GlobalExceptionHandler> logger)
-    : IExceptionHandler
+namespace Core.Head.Exceptions.Handlers;
+public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
     {
-        logger.LogError(
-            "Error Message: {exceptionMessage}, Time of occurrence {time}",
-            exception.Message, DateTime.UtcNow);
+        logger.LogError("Error Message: {exceptionMessage}, Time of occurrence {time}", exception.Message, DateTime.UtcNow);
 
         string detail = exception.GetAllMessages();
         string title = exception.GetType().Name;
