@@ -3,6 +3,7 @@ using Core.Data.UnitOfWorks;
 using Core.Head.Behaviors;
 using Core.Head.Exceptions;
 using Core.Head.Exceptions.Handlers;
+using FluentValidation;
 using IdentityAuthGuard;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Contracts;
@@ -19,6 +20,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using PlayerHub.API.Filters;
+using PlayerHub.Application.Commands;
 using PlayerHub.Data;
 using PlayerHub.Data.Contexts;
 using System.Reflection;
@@ -108,7 +110,7 @@ namespace PlayerHub.API.Extensions
                         .Count()
                         .SetMaxTop(5000)
                         .Expand();
-                }); ;
+                });
         }
 
         public static void AddDbContextFactoryServices(this IHostApplicationBuilder builder)
@@ -151,6 +153,11 @@ namespace PlayerHub.API.Extensions
 
                 return new UnitOfWork<WriteDbContext>(factory, mediator, repositoryType);
             });
+        }
+
+        public static void AddFluentValidationServices(this IHostApplicationBuilder builder)
+        {
+            builder.Services.AddValidatorsFromAssembly(Assembly.Load(APPLICATION_ASSEMBLY));
         }
 
         public static void AddMediatRServices(this IHostApplicationBuilder builder)

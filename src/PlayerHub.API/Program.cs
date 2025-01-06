@@ -9,6 +9,7 @@ builder.AddControllerServices();
 
 builder.AddHttpContextAccessorServices();
 
+builder.AddFluentValidationServices();
 builder.AddAutoMapperServices();
 builder.AddMediatRServices();
 
