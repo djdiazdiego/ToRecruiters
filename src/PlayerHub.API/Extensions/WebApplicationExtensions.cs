@@ -12,7 +12,7 @@ namespace PlayerHub.API.Extensions
         private const string DATA_ASSEMBLY = "PlayerHub.Data";
         private const string IDENTITY_ASSEMBLY = "IdentityAuthGuard";
 
-        public static void UseSwaggerConfiguration(this WebApplication app)
+        public static void UseSwaggerConfiguration(this IApplicationBuilder app)
         {
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -24,9 +24,9 @@ namespace PlayerHub.API.Extensions
             });
         }
 
-        public static void UseCors(this WebApplication app)
+        public static void UseCors(this IApplicationBuilder app, IWebHostEnvironment environment)
         {
-            if (app.Environment.IsDevelopment())
+            if (environment.IsDevelopment())
             {
                 app.UseCors(p =>
                 {
@@ -38,14 +38,14 @@ namespace PlayerHub.API.Extensions
             }
         }
 
-        public static async Task ApplyPenndingMigrationAsync(this WebApplication app)
+        public static async Task ApplyPenndingMigrationAsync(this IHost host)
         {
             using var source = new CancellationTokenSource();
-            await ApplyPenndingMigrationAsync<AppDbContext>(app, source.Token);
-            await ApplyPenndingMigrationAsync<WriteDbContext>(app, source.Token);
+            await ApplyPenndingMigrationAsync<AppDbContext>(host, source.Token);
+            await ApplyPenndingMigrationAsync<WriteDbContext>(host, source.Token);
         }
 
-        public static async Task ApplySeedAsync(this WebApplication app)
+        public static async Task ApplySeedAsync(this IHost host)
         {
             Assembly[] assemblies = [Assembly.Load(IDENTITY_ASSEMBLY), Assembly.Load(DATA_ASSEMBLY)];
 
@@ -57,16 +57,16 @@ namespace PlayerHub.API.Extensions
             {
                 if (Activator.CreateInstance(type) is ISeed seed)
                 {
-                    await seed.SeedAsync(app.Services, source.Token);
+                    await seed.SeedAsync(host.Services, source.Token);
                 }
             }
         }
 
         private static async Task ApplyPenndingMigrationAsync<TContext>(
-            WebApplication app,
+            IHost host,
             CancellationToken cancellationToken = default) where TContext : DbContext
         {
-            using var scope = app.Services.CreateScope();
+            using var scope = host.Services.CreateScope();
 
             if (scope.ServiceProvider.GetRequiredService<IDbContextFactory<TContext>>() is IDbContextFactory<TContext> factory)
             {
