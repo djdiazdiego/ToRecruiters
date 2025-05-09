@@ -2,17 +2,20 @@
 
 namespace Core.BaseModels
 {
+    /// <summary>
+    /// Represents an enumeration interface that extends the base entity and provides comparison functionality.
+    /// </summary>
     public interface IEnumeration : IEntity, IComparable
     {
         /// <summary>
-        /// Name of the field
+        /// Gets the name of the field.
         /// </summary>
-        public string Name { get; }
+        string Name { get; }
 
         /// <summary>
-        /// Set name
+        /// Sets the name of the field.
         /// </summary>
-        /// <param name="name"></param>
-        public void SetName(string name);
+        /// <param name="name">The name to set.</param>
+        void SetName(string name);
     }
 }

@@ -12,11 +12,11 @@ namespace PlayerHub.Data.Contexts
         IDbContextFactory<ReadDbContext>
     {
         public ReadDbContextFactory() :
-            base(Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
+            base(Constants.CONNECTION_STRING, Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
         { }
 
         public ReadDbContextFactory(IConfiguration configuration) :
-            base(Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer, configuration)
+            base(configuration, Constants.CONNECTION_STRING, Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
         { }
     }
 }

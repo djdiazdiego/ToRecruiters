@@ -1,69 +1,29 @@
-﻿using Core.Data.Repositories;
-using Core.Data.UnitOfWorks;
-using Core.Head.Behaviors;
-using Core.Head.Exceptions;
+﻿using Core.Exceptions;
 using Core.Head.Exceptions.Handlers;
 using FluentValidation;
-using IdentityAuthGuard;
-using IdentityAuthGuard.Constants;
-using IdentityAuthGuard.Contracts;
-using IdentityAuthGuard.Models;
-using IdentityAuthGuard.Services.GuidGeneratorService;
-using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using PlayerHub.API.Filters;
-using PlayerHub.Data;
-using PlayerHub.Data.Contexts;
 using System.Reflection;
-using System.Security.Claims;
+
 
 namespace PlayerHub.API.Extensions
 {
     internal static class ServiceCollectionExtensions
     {
-        private const string APPLICATION_ASSEMBLY = "PlayerHub.Application";
-
-        public static void AddAPIServices(this IHostApplicationBuilder builder)
+        public static void AddAPIServices(this IServiceCollection services, IHostEnvironment environment)
         {
-            builder.Services.AddLogging();
-            builder.Services.AddCorsServices(builder.Environment);
-            builder.Services.AddHttpContextAccessor();
-            builder.Services.AddControllerServices();
-            builder.Services.AddRouting(x => x.LowercaseUrls = true);
-            builder.Services.AddGlobalExceptionHandlerServices();
-            builder.Services.AddSwaggerServices(builder.Environment);
-        }
-        public static void AddDataServices(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddDbContextFactoryServices(builder.Configuration);
-            builder.Services.AddUnitOfWorkServices();
-        }
-        public static void AddApplicationServices(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddFluentValidationServices();
-            builder.Services.AddAutoMapperServices();
-            builder.Services.AddMediatRServices();
-        }
-        public static void AddIdentityAuthGuardServices(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddIdentityServices();
-            builder.Services.AddUserServices();
-        }
-        public static void AddAPISecurityServices(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddAuthenticationServices(builder.Configuration);
-            builder.Services.AddAuthorizationServices(builder.Configuration);
+            services.AddLogging();
+            services.AddCorsServices(environment);
+            services.AddHttpContextAccessor();
+            services.AddControllerServices();
+            services.AddRouting(x => x.LowercaseUrls = true);
+            services.AddGlobalExceptionHandlerServices();
+            services.AddSwaggerServices(environment);
         }
 
-        #region API Services
         private static void AddCorsServices(this IServiceCollection services, IHostEnvironment environment)
         {
             if (environment.IsDevelopment())
@@ -222,126 +182,5 @@ namespace PlayerHub.API.Extensions
                 services.AddSwaggerGenNewtonsoftSupport();
             }
         }
-        #endregion
-
-        #region Data Services
-        private static void AddDbContextFactoryServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddDbContextFactory<WriteDbContext, WriteDbContextFactory>();
-            services.AddDbContextFactory<ReadDbContext, ReadDbContextFactory>();
-            services.AddDbContextFactory<AppDbContext, AppDbContextFactory>(options =>
-            {
-#if DEBUG
-                options.EnableSensitiveDataLogging();
-                options.EnableDetailedErrors();
-#endif
-
-                var connection = configuration["ConnectionStrings:AppDbConnection"];
-
-                options.UseSqlServer(connection, o =>
-                {
-                    o.MigrationsAssembly(Constants.MIGRATIONS_ASSEMBLY);
-                    o.EnableRetryOnFailure();
-                });
-            });
-        }
-        private static void AddUnitOfWorkServices(this IServiceCollection services)
-        {
-            services.AddTransient<IReadUnitOfWork>(provider =>
-            {
-                var factory = provider.GetRequiredService<IDbContextFactory<ReadDbContext>>();
-                var mediator = provider.GetRequiredService<IMediator>();
-                var repositoryType = typeof(ReadRepository<>);
-
-                return new UnitOfWork<ReadDbContext>(factory, mediator, repositoryType);
-            });
-
-            services.AddScoped<IWriteUnitOfWork>(provider =>
-            {
-                var factory = provider.GetRequiredService<IDbContextFactory<WriteDbContext>>();
-                var mediator = provider.GetRequiredService<IMediator>();
-                var repositoryType = typeof(WriteRepository<>);
-
-                return new UnitOfWork<WriteDbContext>(factory, mediator, repositoryType);
-            });
-        }
-        #endregion
-
-        #region Application Services
-        private static void AddFluentValidationServices(this IServiceCollection services)
-        {
-            services.AddValidatorsFromAssembly(Assembly.Load(APPLICATION_ASSEMBLY));
-        }
-        private static void AddAutoMapperServices(this IServiceCollection services)
-        {
-            services.AddAutoMapper(Assembly.Load(APPLICATION_ASSEMBLY));
-        }
-        private static void AddMediatRServices(this IServiceCollection services)
-        {
-            var assemblies = new Assembly[] { Assembly.Load(APPLICATION_ASSEMBLY) };
-
-            services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssemblies(assemblies);
-                config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            });
-        }
-        #endregion
-
-        #region Identity Auth Guard Services
-        private static void AddIdentityServices(this IServiceCollection services)
-        {
-            services.AddIdentity<User, Role>(options =>
-            {
-                options.Password.RequiredLength = 8;
-                options.User.RequireUniqueEmail = true;
-                options.SignIn.RequireConfirmedEmail = true;
-            })
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddRoles<Role>()
-                .AddSignInManager();
-        }
-        private static void AddUserServices(this IServiceCollection services)
-        {
-            services.AddSingleton<IGuidGeneratorService, GuidGeneratorService>();
-            services.AddScoped<IUserService, UserService>();
-        }
-        #endregion
-
-        #region API Security Services
-        private static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                var issuer = configuration["Jwt:Issuer"] ?? throw new NotFoundException("Jwt issuer not found");
-                var audience = configuration["Jwt:Audience"] ?? throw new NotFoundException("Jwt audience not found");
-                var key = configuration["Jwt:Key"] ?? throw new NotFoundException("Jwt key not found");
-
-                options.TokenValidationParameters = Helpers.GetTokenValidationParameters(issuer, audience, key);
-            });
-        }
-        private static void AddAuthorizationServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddSingleton<IAuthorizationHandler, ApiKeyAuthorizationHandler>();
-
-            services.AddAuthorizationBuilder()
-                .AddPolicy(Schemes.UserScheme, builder =>
-                {
-                    builder.RequireAuthenticatedUser().RequireClaim(ClaimTypes.NameIdentifier);
-                })
-                .AddPolicy(ApiKeyRequirement.Scheme, policy =>
-                {
-                    var secret = configuration[ApiKeyRequirement.Scheme] ??
-                        throw new NotFoundException("Api key not found");
-
-                    policy.Requirements.Add(new ApiKeyRequirement(secret));
-                });
-        }
-        #endregion
     }
 }

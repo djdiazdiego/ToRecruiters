@@ -3,13 +3,16 @@ using Core.Data.Repositories;
 
 namespace Core.Data.UnitOfWorks
 {
+    /// <summary>
+    /// Represents a unit of work for read-only operations.
+    /// </summary>
     public interface IReadUnitOfWork : IDisposable
     {
         /// <summary>
-        /// Get read repository
+        /// Gets a read repository for the specified entity type.
         /// </summary>
-        /// <typeparam name="TRepository"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="TEntity">The type of the entity.</typeparam>
+        /// <returns>An instance of <see cref="ReadRepository{TEntity}"/> for the specified entity type.</returns>
         ReadRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity;
     }
 }

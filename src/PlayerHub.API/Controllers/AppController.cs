@@ -1,4 +1,4 @@
-﻿using Core.Head.Wrappers;
+﻿using Core.Wrappers;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
@@ -19,7 +19,7 @@ namespace PlayerHub.API.Controllers
                 (int)HttpStatusCode.Forbidden => Forbid(),
                 (int)HttpStatusCode.NotFound => NotFound(response),
                 (int)HttpStatusCode.Conflict => Conflict(response),
-                _ => Ok(Core.Head.Wrappers.Response.Ok),
+                _ => Ok(Core.Wrappers.Response.Ok),
             };
         }
 

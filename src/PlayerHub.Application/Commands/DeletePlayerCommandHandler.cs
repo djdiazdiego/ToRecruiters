@@ -1,6 +1,6 @@
 ﻿using Core.Data.UnitOfWorks;
 using Core.Head.CQRS;
-using Core.Head.Wrappers;
+using Core.Wrappers;
 using Microsoft.EntityFrameworkCore;
 using PlayerHub.Domain;
 

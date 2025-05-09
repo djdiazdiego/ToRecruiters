@@ -11,14 +11,14 @@ namespace PlayerHub.Data.Contexts
         IDesignTimeDbContextFactory<WriteDbContext>,
         IDbContextFactory<WriteDbContext>
     {
-        
+
 
         public WriteDbContextFactory() :
-            base(Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
+            base(Constants.CONNECTION_STRING, Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
         { }
 
         public WriteDbContextFactory(IConfiguration configuration) :
-            base(Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer, configuration)
+            base(configuration, Constants.CONNECTION_STRING, Constants.MIGRATIONS_ASSEMBLY, DbTypes.SqlServer)
         { }
     }
 }

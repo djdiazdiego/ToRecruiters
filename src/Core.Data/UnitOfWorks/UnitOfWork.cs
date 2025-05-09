@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Data.UnitOfWorks
 {
+    /// <summary>
+    /// Represents a unit of work for managing repositories and saving changes to the database.
+    /// </summary>
+    /// <typeparam name="TContext">The type of the database context.</typeparam>
     public sealed class UnitOfWork<TContext>(IDbContextFactory<TContext> factory, IMediator mediator, Type repositoryType) :
         IWriteUnitOfWork,
         IReadUnitOfWork,
@@ -18,9 +22,11 @@ namespace Core.Data.UnitOfWorks
         private readonly Type _repositoryType = repositoryType;
         private readonly Dictionary<Type, IRepository> _repositories = [];
 
+        /// <inheritdoc />
         WriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>() =>
             GetRepository<WriteRepository<TEntity>>();
 
+        /// <inheritdoc />
         ReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>() =>
             GetRepository<ReadRepository<TEntity>>();
 
@@ -28,7 +34,6 @@ namespace Core.Data.UnitOfWorks
         public int SaveChanges()
         {
             TryExecuteDomainEvents();
-
             return _context.SaveChanges();
         }
 
@@ -36,94 +41,107 @@ namespace Core.Data.UnitOfWorks
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             TryExecuteDomainEvents(cancellationToken);
-
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
+        /// <summary>
+        /// Retrieves a repository of the specified type.
+        /// </summary>
+        /// <typeparam name="TRepository">The type of the repository.</typeparam>
+        /// <returns>An instance of the specified repository type.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the repository type is incorrect or cannot be created.</exception>
         private TRepository GetRepository<TRepository>() where TRepository : class, IRepository
         {
             var repositoryType = typeof(TRepository);
 
             if (!repositoryType.IsGenericType || repositoryType.GetGenericTypeDefinition() != _repositoryType)
             {
-                throw new Exception($"Incorrect repository type: {repositoryType.Name}");
+                throw new InvalidOperationException($"Incorrect repository type: {repositoryType.Name}");
             }
 
-            var entityType = typeof(TRepository).GetGenericArguments().First();
+            var entityType = repositoryType.GetGenericArguments().First();
 
-            if (_repositories.TryGetValue(entityType, out IRepository? value))
+            if (_repositories.TryGetValue(entityType, out IRepository? existingRepository))
             {
-                return (TRepository)value;
+                return (TRepository)existingRepository;
             }
 
-            var type = typeof(IEntity);
-
-            if (entityType.IsClass && !entityType.IsAbstract && type.IsAssignableFrom(entityType))
+            if (!entityType.IsClass || entityType.IsAbstract || !typeof(IEntity).IsAssignableFrom(entityType))
             {
-                var genericType = _repositoryType.MakeGenericType(entityType);
-                var instance = Activator.CreateInstance(genericType, _context);
-
-                if (instance is TRepository repository)
-                {
-                    _repositories.Add(entityType, repository);
-                }
-
-                return (TRepository)_repositories[entityType];
+                throw new InvalidOperationException($"Cannot create a repository for the type: {entityType.Name}");
             }
-            else
+
+            var genericRepositoryType = _repositoryType.MakeGenericType(entityType);
+            if (Activator.CreateInstance(genericRepositoryType, _context) is not TRepository newRepository)
             {
-                throw new Exception($"Cannot create a repository of the following type: {entityType.Name}");
+                throw new InvalidOperationException($"Failed to create an instance of repository type: {genericRepositoryType.Name}");
             }
+
+            _repositories[entityType] = newRepository;
+            return newRepository;
         }
 
+        /// <summary>
+        /// Executes domain events for the tracked entities.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
         private void TryExecuteDomainEvents(CancellationToken cancellationToken = default)
         {
-            var events = GetEvents();
-
-            while (events.Count > 0)
+            List<IDomainEvent> events;
+            do
             {
-                PublishDomainEventsAsync(events, cancellationToken).Wait(cancellationToken);
-
                 events = GetEvents();
-            }
+                if (events.Count > 0)
+                {
+                    PublishDomainEventsAsync(events, cancellationToken).GetAwaiter().GetResult();
+                }
+            } while (events.Count > 0);
         }
 
+        /// <summary>
+        /// Retrieves all domain events from the tracked entities.
+        /// </summary>
+        /// <returns>A list of domain events.</returns>
         private List<IDomainEvent> GetEvents()
         {
             var aggregates = _context.ChangeTracker.Entries()
-                .Where(e => (e.State == EntityState.Modified || e.State == EntityState.Added || e.State == EntityState.Deleted) &&
-                    e.GetType().GetInterfaces().Contains(typeof(IAggregateRoot)))
+                .Where(e => e.State is EntityState.Modified or EntityState.Added or EntityState.Deleted &&
+                            typeof(IAggregateRoot).IsAssignableFrom(e.Entity.GetType()))
                 .Select(e => e.Entity)
                 .Cast<IAggregateRoot>()
                 .ToArray();
 
             var events = new List<IDomainEvent>();
 
-            if (aggregates != null && aggregates.Length != 0)
+            foreach (var aggregate in aggregates)
             {
-                foreach (var aggregate in aggregates)
-                {
-                    events.AddRange(aggregate.GetDomainEvents());
-
-                    aggregate.ClearDomainEvents();
-                }
+                events.AddRange(aggregate.GetDomainEvents());
+                aggregate.ClearDomainEvents();
             }
 
             return events;
         }
 
+        /// <summary>
+        /// Publishes the specified domain events asynchronously.
+        /// </summary>
+        /// <param name="events">The list of domain events to publish.</param>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
         private async Task PublishDomainEventsAsync(List<IDomainEvent> events, CancellationToken cancellationToken = default)
         {
-            var tasks = new List<Task>();
-
-            foreach (var @event in events)
+            if (events == null || events.Count == 0)
             {
-                tasks.Add(_mediator.Publish(@event, cancellationToken));
+                return;
             }
 
-            await Task.WhenAll(tasks);
+            var publishTasks = events.Select(@event => _mediator.Publish(@event, cancellationToken));
+            await Task.WhenAll(publishTasks);
         }
 
+        /// <summary>
+        /// Disposes the resources used by the unit of work.
+        /// </summary>
+        /// <param name="disposing">Indicates whether the method is called from the Dispose method.</param>
         private void Dispose(bool disposing)
         {
             if (!disposedValue)

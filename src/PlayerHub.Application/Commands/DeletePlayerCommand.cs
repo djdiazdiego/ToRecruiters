@@ -1,5 +1,5 @@
 ﻿using Core.Head.CQRS;
-using Core.Head.Wrappers;
+using Core.Wrappers;
 
 namespace PlayerHub.Application.Commands
 {

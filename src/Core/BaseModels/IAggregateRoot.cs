@@ -3,29 +3,33 @@ using Core.DomainEvents;
 
 namespace Core.BaseModels
 {
+    /// <summary>
+    /// Represents an aggregate root in the domain-driven design pattern.
+    /// An aggregate root is an entity that serves as the entry point for accessing an aggregate.
+    /// </summary>
     public interface IAggregateRoot : IEntity
     {
         /// <summary>
-        /// Clear domain event
+        /// Clears all domain events associated with the aggregate root.
         /// </summary>
         void ClearDomainEvents();
 
         /// <summary>
-        /// Add domain event
+        /// Adds a domain event to the aggregate root.
         /// </summary>
-        /// <param name="event"></param>
+        /// <param name="event">The domain event to add.</param>
         void AddDomainEvent(IDomainEvent @event);
 
         /// <summary>
-        /// Remove domain event
+        /// Removes a specific domain event from the aggregate root.
         /// </summary>
-        /// <param name="event"></param>
+        /// <param name="event">The domain event to remove.</param>
         void RemoveDomainEvent(IDomainEvent @event);
 
         /// <summary>
-        /// Get domain events from an aggregate
+        /// Retrieves all domain events associated with the aggregate root.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A read-only collection of domain events.</returns>
         IReadOnlyCollection<IDomainEvent> GetDomainEvents();
     }
 }

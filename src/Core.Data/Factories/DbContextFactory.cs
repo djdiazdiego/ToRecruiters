@@ -4,16 +4,26 @@ using Microsoft.Extensions.Configuration;
 
 namespace Core.Data.Factories
 {
+    /// <summary>
+    /// Abstract factory class for creating instances of <see cref="DbContext"/>.
+    /// </summary>
+    /// <typeparam name="TContext">The type of the DbContext.</typeparam>
     public abstract class DbContextFactory<TContext> :
         IDesignTimeDbContextFactory<TContext>,
         IDbContextFactory<TContext>
         where TContext : DbContext
     {
-        private readonly string _connection;
+        private readonly string? _connection;
         private readonly string _migrationsAssembly;
         private readonly DbTypes _dbType;
 
-        protected DbContextFactory(string migrationsAssembly, DbTypes dbType)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DbContextFactory{TContext}"/> class.
+        /// </summary>
+        /// <param name="connectionString">The name of the connection string in the configuration.</param>
+        /// <param name="migrationsAssembly">The name of the assembly containing migrations.</param>
+        /// <param name="dbType">The type of the database.</param>
+        protected DbContextFactory(string connectionString, string migrationsAssembly, DbTypes dbType)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
@@ -25,49 +35,74 @@ namespace Core.Data.Factories
 
             var configuration = builder.Build();
 
-            _connection = configuration["ConnectionStrings:AppDbConnection"] ?? string.Empty;
-            _migrationsAssembly = migrationsAssembly;
-            _dbType = dbType;
+            _connection = configuration.GetConnectionString(connectionString);
 
-            if (string.IsNullOrEmpty(_connection))
-            {
-                throw new InvalidOperationException("The connection string was not found in the environment variables");
-            }
+            EnsureConnectionString();
+
+            _dbType = dbType;
+            _migrationsAssembly = migrationsAssembly;
         }
 
-        protected DbContextFactory(string migrationsAssembly, DbTypes dbType, IConfiguration configuration)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DbContextFactory{TContext}"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration object.</param>
+        /// <param name="connectionString">The name of the connection string in the configuration.</param>
+        /// <param name="migrationsAssembly">The name of the assembly containing migrations.</param>
+        /// <param name="dbType">The type of the database.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the configuration object is null.</exception>
+        protected DbContextFactory(IConfiguration configuration, string connectionString, string migrationsAssembly, DbTypes dbType)
         {
-            _connection = configuration["ConnectionStrings:AppDbConnection"] ?? string.Empty;
-            _migrationsAssembly = migrationsAssembly;
-            _dbType = dbType;
+            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
 
-            if (string.IsNullOrEmpty(_connection))
-            {
-                throw new InvalidOperationException("The connection string was not found in the configuration collection");
-            }
+            _connection = configuration.GetConnectionString(connectionString);
+
+            EnsureConnectionString();
+
+            _dbType = dbType;
+            _migrationsAssembly = migrationsAssembly;
         }
 
+        /// <summary>
+        /// Creates a new instance of the <typeparamref name="TContext"/> using the provided arguments.
+        /// </summary>
+        /// <param name="args">Optional arguments, such as a connection string.</param>
+        /// <returns>An instance of <typeparamref name="TContext"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown when the connection string is null or empty.</exception>
         public TContext CreateDbContext(string[] args)
         {
-            if (args == null || args.Length == 0)
+            var connection = args?.FirstOrDefault() ?? _connection;
+
+            if (string.IsNullOrWhiteSpace(connection))
             {
-                args = [_connection];
+                throw new ArgumentException("The database connection string cannot be null or empty.", nameof(args));
             }
 
-            return Helpers.CreateDbContext<TContext>(
-                args == null || args.Length == 0 ? _connection : args[0],
-                _migrationsAssembly,
-                _dbType);
+            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType);
         }
 
+        /// <summary>
+        /// Creates a new instance of the <typeparamref name="TContext"/> using the default connection string.
+        /// </summary>
+        /// <returns>An instance of <typeparamref name="TContext"/>.</returns>
         public TContext CreateDbContext()
         {
-            if (string.IsNullOrEmpty(_connection))
-            {
-                throw new Exception("The database connection string cannot be null or empty");
-            }
+            return CreateDbContext([]);
+        }
 
-            return CreateDbContext([_connection]);
+
+        /// <summary>
+        /// Ensures that the connection string is not null or empty.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when the connection string is missing or empty in the configuration.
+        /// </exception>
+        private void EnsureConnectionString()
+        {
+            if (string.IsNullOrWhiteSpace(_connection))
+            {
+                throw new InvalidOperationException("The connection string is missing or empty in the configuration.");
+            }
         }
     }
 }

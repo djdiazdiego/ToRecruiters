@@ -1,5 +1,5 @@
 ﻿using Core.Head.CQRS;
-using Core.Head.Wrappers;
+using Core.Wrappers;
 using PlayerHub.Application.DTOs.PlayerDTOs;
 
 namespace PlayerHub.Application.Commands

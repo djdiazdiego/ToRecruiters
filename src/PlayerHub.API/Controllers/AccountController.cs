@@ -1,9 +1,9 @@
-﻿using IdentityAuthGuard.Constants;
-using IdentityAuthGuard.Contracts;
+﻿using Core.Security;
+using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.DTOs;
+using IdentityAuthGuard.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PlayerHub.API.Filters;
 
 namespace PlayerHub.API.Controllers
 {

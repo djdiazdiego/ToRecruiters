@@ -3,10 +3,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Data.Repositories
 {
+    /// <summary>
+    /// A repository for reading entities from the database.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public class ReadRepository<TEntity>(DbContext dbContext) : IReadRepository<TEntity>, IRepository where TEntity : class, IEntity
     {
         private readonly DbContext _context = dbContext;
 
+        /// <summary>
+        /// Gets the database context.
+        /// </summary>
         protected DbContext Context => _context;
 
         /// <inheritdoc />

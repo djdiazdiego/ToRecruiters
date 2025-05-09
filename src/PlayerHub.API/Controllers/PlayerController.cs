@@ -1,10 +1,10 @@
-﻿using Core.Head.Wrappers;
+﻿using Core.Security;
+using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using PlayerHub.API.Filters;
 using PlayerHub.Application.Commands;
 using PlayerHub.Application.DTOs.PlayerDTOs;
 using PlayerHub.Application.Queries;

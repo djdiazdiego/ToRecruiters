@@ -2,46 +2,46 @@
 
 namespace Core.Data.Repositories
 {
+    /// <summary>
+    /// Represents a repository for performing write operations on entities.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public interface IWriteRepository<TEntity> : IReadRepository<TEntity>, IRepository where TEntity : class, IEntity
     {
         /// <summary>
-        /// Track the entity to be deleted
+        /// Removes the specified entity from the repository.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        /// <param name="entity">The entity to remove.</param>
         void Remove(TEntity entity);
 
         /// <summary>
-        /// Track the entities to be deleted
+        /// Removes the specified entities from the repository.
         /// </summary>
-        /// <param name="entities"></param>
+        /// <param name="entities">The entities to remove.</param>
         void RemoveRange(params TEntity[] entities);
 
         /// <summary>
-        /// Track the entity to be updated
+        /// Updates the specified entity in the repository.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        /// <param name="entity">The entity to update.</param>
         void Update(TEntity entity);
 
         /// <summary>
-        /// Track the entities to be updated
+        /// Updates the specified entities in the repository.
         /// </summary>
-        /// <param name="entities"></param>
-        /// <returns></returns>
+        /// <param name="entities">The entities to update.</param>
         void UpdateRange(params TEntity[] entities);
 
         /// <summary>
-        /// Track the entity to be inserted
+        /// Adds the specified entity to the repository.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        /// <param name="entity">The entity to add.</param>
         void Add(TEntity entity);
 
         /// <summary>
-        /// Track the entities to be updated
+        /// Adds the specified entities to the repository.
         /// </summary>
-        /// <param name="entities"></param>
+        /// <param name="entities">The entities to add.</param>
         void AddRange(params TEntity[] entities);
     }
 }

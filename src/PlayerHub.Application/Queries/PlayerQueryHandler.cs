@@ -3,7 +3,7 @@ using Core.BaseModels;
 using Core.Data.UnitOfWorks;
 using Core.Head.CQRS;
 using Core.Head.Helpers;
-using Core.Head.Wrappers;
+using Core.Wrappers;
 using PlayerHub.Application.DTOs.PlayerDTOs;
 using PlayerHub.Domain;
 using System.Linq.Expressions;

@@ -6,8 +6,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace IdentityAuthGuard.Seeds
 {
+    /// <summary>
+    /// Represents a seed class for initializing default user roles and a default admin user.
+    /// </summary>
     public sealed class UserRoleSeed : ISeed
     {
+        /// <summary>
+        /// Seeds default roles and a default admin user into the database.
+        /// </summary>
+        /// <param name="provider">The service provider used to resolve dependencies.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task SeedAsync(IServiceProvider provider, CancellationToken cancellationToken = default)
         {
             using var scope = provider.CreateScope();
