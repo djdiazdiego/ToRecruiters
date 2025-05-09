@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PlayerHub.API.Controllers
 {
+    /// <summary>
+    /// Controller for managing user accounts, including creation, login, logout, and token refresh.
+    /// </summary>
     [Route("api/account")]
     [ApiController]
     [Produces("application/json")]
@@ -16,10 +19,10 @@ namespace PlayerHub.API.Controllers
         private readonly IUserService _userService = userService;
 
         /// <summary>
-        /// Create user
+        /// Creates a new user account.
         /// </summary>
-        /// <param name="dto"></param>
-        /// <returns></returns>
+        /// <param name="dto">The user details for account creation.</param>
+        /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost]
         [Authorize(Policy = Schemes.UserScheme, Roles = DefaultRoles.Admin)]
         public async Task<IActionResult> Create([FromBody] UserDTO dto)
@@ -28,10 +31,10 @@ namespace PlayerHub.API.Controllers
         }
 
         /// <summary>
-        /// Login
+        /// Logs in a user account.
         /// </summary>
-        /// <param name="dto"></param>
-        /// <returns></returns>
+        /// <param name="dto">The login details of the user.</param>
+        /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
@@ -39,9 +42,9 @@ namespace PlayerHub.API.Controllers
         }
 
         /// <summary>
-        /// Logout
+        /// Logs out the currently authenticated user.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("logout")]
         [Authorize(Policy = Schemes.UserScheme)]
         public async Task<IActionResult> Logout()
@@ -50,10 +53,10 @@ namespace PlayerHub.API.Controllers
         }
 
         /// <summary>
-        /// Refresh token
+        /// Refreshes the authentication token for a user.
         /// </summary>
-        /// <param name="dto"></param>
-        /// <returns></returns>
+        /// <param name="dto">The token details for refreshing.</param>
+        /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] TokenDTO dto)
         {

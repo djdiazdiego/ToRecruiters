@@ -3,44 +3,69 @@ using Core.Head.Exceptions.Handlers;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Reflection;
 
-
 namespace PlayerHub.API.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for configuring services in the application.
+    /// </summary>
     internal static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds API-related services to the service collection.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <param name="environment">The hosting environment.</param>
         public static void AddAPIServices(this IServiceCollection services, IHostEnvironment environment)
         {
             services.AddLogging();
-            services.AddCorsServices(environment);
             services.AddHttpContextAccessor();
             services.AddControllerServices();
+            services.AddHstsServices();
+            services.AddCorsServices(environment);
+            services.AddRateLimiterServices();
             services.AddRouting(x => x.LowercaseUrls = true);
             services.AddGlobalExceptionHandlerServices();
             services.AddSwaggerServices(environment);
         }
 
+        /// <summary>
+        /// Configures CORS policies for the application.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <param name="environment">The hosting environment.</param>
         private static void AddCorsServices(this IServiceCollection services, IHostEnvironment environment)
         {
-            if (environment.IsDevelopment())
-            {
-                services.AddCors(options =>
+            services.AddCors(options =>
                 {
-                    options.AddPolicy(
-                        name: "AllowOrigin", config =>
-                        {
-                            config.WithOrigins("http://localhost:4200")
-                                .AllowAnyMethod()
-                                .AllowAnyHeader()
+                    options.AddPolicy("PlayerHubCorsPolicy", corsPolicy =>
+                    {
+                        corsPolicy.WithHeaders("Content-Type", "Authorization")
+                                .WithMethods("GET", "POST", "PUT", "DELETE")
                                 .AllowCredentials();
-                        });
+
+                        if (environment.IsDevelopment())
+                        {
+                            corsPolicy.WithOrigins("http://localhost:4200");
+                        }
+                        else
+                        {
+                            corsPolicy.WithOrigins("https://playerhub.dev")
+                                    .SetIsOriginAllowedToAllowWildcardSubdomains();
+                        }
+                    });
                 });
-            }
         }
+
+        /// <summary>
+        /// Configures controller-related services, including JSON serialization and OData.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
         private static void AddControllerServices(this IServiceCollection services)
         {
             services.AddControllers()
@@ -93,11 +118,22 @@ namespace PlayerHub.API.Extensions
                         .Expand();
                 });
         }
+
+        /// <summary>
+        /// Configures global exception handling services.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
         private static void AddGlobalExceptionHandlerServices(this IServiceCollection services)
         {
             services.AddProblemDetails();
             services.AddExceptionHandler<GlobalExceptionHandler>();
         }
+
+        /// <summary>
+        /// Configures Swagger services for API documentation.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <param name="environment">The hosting environment.</param>
         private static void AddSwaggerServices(this IServiceCollection services, IHostEnvironment environment)
         {
             if (environment.IsDevelopment())
@@ -151,29 +187,29 @@ namespace PlayerHub.API.Extensions
 
                     options.AddSecurityRequirement(new OpenApiSecurityRequirement
                     {
-                        {
-                            new OpenApiSecurityScheme
                             {
-                                Reference = new OpenApiReference
+                                new OpenApiSecurityScheme
                                 {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer",
-                                },
-                                Scheme = "oauth2",
-                                Name = "Bearer",
-                                In = ParameterLocation.Header,
-                            }, []
-                        },
-                        {
-                            new OpenApiSecurityScheme
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "Bearer",
+                                    },
+                                    Scheme = "oauth2",
+                                    Name = "Bearer",
+                                    In = ParameterLocation.Header,
+                                }, []
+                            },
                             {
-                                Reference = new OpenApiReference
+                                new OpenApiSecurityScheme
                                 {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "ApiKey"
-                                }
-                            }, []
-                        },
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "ApiKey"
+                                    }
+                                }, []
+                            },
                     });
 
                     options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -181,6 +217,36 @@ namespace PlayerHub.API.Extensions
 
                 services.AddSwaggerGenNewtonsoftSupport();
             }
+        }
+
+        /// <summary>
+        /// Configures rate limiting services.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        private static void AddRateLimiterServices(this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                options.AddFixedWindowLimiter("fixed", limiterOptions =>
+                {
+                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                    limiterOptions.PermitLimit = 100;
+                });
+            });
+        }
+
+        /// <summary>
+        /// Configures HSTS (HTTP Strict Transport Security) services.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        private static void AddHstsServices(this IServiceCollection services)
+        {
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+                options.Preload = true;
+            });
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Core.Data;
 using IdentityAuthGuard.Constants;
-using IdentityAuthGuard.Contexts;
+using IdentityAuthGuard.Data.Contexts;
 using IdentityAuthGuard.Models;
 using IdentityAuthGuard.Services.GuidGeneratorServices;
 using IdentityAuthGuard.Services.UserServices;

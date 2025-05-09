@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace IdentityAuthGuard.Contexts
+namespace IdentityAuthGuard.Data.Contexts
 {
     /// <summary>
     /// Factory class for creating instances of <see cref="AppDbContext"/>.

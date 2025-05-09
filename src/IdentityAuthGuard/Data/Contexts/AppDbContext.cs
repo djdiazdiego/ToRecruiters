@@ -3,7 +3,7 @@ using IdentityAuthGuard.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityAuthGuard.Contexts
+namespace IdentityAuthGuard.Data.Contexts
 {
     /// <summary>
     /// Represents the application's database context, inheriting from <see cref="IdentityDbContext{TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken}"/> 

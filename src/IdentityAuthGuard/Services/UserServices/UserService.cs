@@ -54,19 +54,19 @@ namespace IdentityAuthGuard.Services.UserServices
                 userDTO.Roles = [DefaultRoles.User];
             }
 
-            var roles = new List<string>();
+            var validRoles = new List<string>();
 
             foreach (var role in userDTO.Roles)
             {
                 if (await _roleManager.RoleExistsAsync(role))
                 {
-                    roles.Add(role);
+                    validRoles.Add(role);
                 }
             }
 
-            if (roles.Count == 0)
+            if (validRoles.Count == 0)
             {
-                roles.Add(DefaultRoles.User);
+                validRoles.Add(DefaultRoles.User);
             }
 
             user = new User
@@ -86,7 +86,7 @@ namespace IdentityAuthGuard.Services.UserServices
                 return result.ErrorResponse();
             }
 
-            foreach (var role in userDTO.Roles)
+            foreach (var role in validRoles)
             {
                 await _userManager.AddToRoleAsync(user, role);
             }
@@ -104,7 +104,7 @@ namespace IdentityAuthGuard.Services.UserServices
 
             var user = await _userManager.FindByEmailAsync(loginDTO.Email);
 
-            if (user == null)
+            if (user is null)
             {
                 return Response.Full((int)HttpStatusCode.NotFound, $"User not found with email: {loginDTO.Email}");
             }
@@ -114,12 +114,21 @@ namespace IdentityAuthGuard.Services.UserServices
                 return Response.Full((int)HttpStatusCode.Forbidden, "User is locked out");
             }
 
-            var isCorrectPasword = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
+            var isCorrectPassword = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
 
-            if (!isCorrectPasword)
+            if (!isCorrectPassword)
             {
+                await _userManager.AccessFailedAsync(user);
+
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    return Response.Full((int)HttpStatusCode.Forbidden, "User is locked out due to multiple failed login attempts");
+                }
+
                 return Response.Full((int)HttpStatusCode.Unauthorized, "Wrong password");
             }
+
+            await _userManager.ResetAccessFailedCountAsync(user);
 
             return await GenerateTokenAsync(user, true);
         }
@@ -127,6 +136,11 @@ namespace IdentityAuthGuard.Services.UserServices
         /// <inheritdoc />
         public async Task<Response> RefreshToken(TokenDTO dto)
         {
+            if (dto is null || string.IsNullOrWhiteSpace(dto.AccessToken) || string.IsNullOrWhiteSpace(dto.RefreshToken))
+            {
+                return Response.Full((int)HttpStatusCode.BadRequest, "Invalid token data");
+            }
+
             var (response, email) = ValidateExpiredToken(dto.AccessToken);
 
             if (response != null)
@@ -136,10 +150,16 @@ namespace IdentityAuthGuard.Services.UserServices
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is null || user.RefreshToken is null ||
-                user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (user is null)
             {
-                return Response.Full((int)HttpStatusCode.Unauthorized, "Invalid refresh token");
+                return Response.Full((int)HttpStatusCode.NotFound, "User not found");
+            }
+
+            if (string.IsNullOrWhiteSpace(user.RefreshToken) ||
+                user.RefreshToken != dto.RefreshToken ||
+                user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return Response.Full((int)HttpStatusCode.Unauthorized, "Invalid or expired refresh token");
             }
 
             return await GenerateTokenAsync(user, false);
@@ -148,11 +168,21 @@ namespace IdentityAuthGuard.Services.UserServices
         /// <inheritdoc />
         public async Task<Response> LogoutAsync(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return Response.Full((int)HttpStatusCode.BadRequest, "Email cannot be null or empty");
+            }
+
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
                 return Response.Full((int)HttpStatusCode.NotFound, $"User not found with email: {email}");
+            }
+
+            if (string.IsNullOrWhiteSpace(user.RefreshToken))
+            {
+                return Response.Full((int)HttpStatusCode.BadRequest, "User is not logged in");
             }
 
             user.RefreshToken = null;
@@ -233,9 +263,12 @@ namespace IdentityAuthGuard.Services.UserServices
         {
             using var generator = RandomNumberGenerator.Create();
 
-            var randomNumber = new byte[32];
+            var randomNumber = new byte[64];
             generator.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
+            return Convert.ToBase64String(randomNumber)
+                .TrimEnd('=') // Remove padding for cleaner token
+                .Replace('+', '-') // Replace '+' with '-' for URL safety
+                .Replace('/', '_'); // Replace '/' with '_' for URL safety
         }
 
         /// <summary>
@@ -246,16 +279,21 @@ namespace IdentityAuthGuard.Services.UserServices
         private (Response?, string) ValidateExpiredToken(string token)
         {
             var parameters = Helpers.GetTokenValidationParameters(_issuer, _audience, _key);
-
             var handler = new JwtSecurityTokenHandler();
 
             try
             {
                 var principal = handler.ValidateToken(token, parameters, out SecurityToken securityToken);
 
-                var email = principal?.FindFirst(x => x.Type == ClaimTypes.Email)?.Value;
+                if (securityToken is not JwtSecurityToken jwtToken ||
+                    !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
+                }
 
-                if (string.IsNullOrEmpty(email))
+                var email = principal?.FindFirst(ClaimTypes.Email)?.Value;
+
+                if (string.IsNullOrWhiteSpace(email))
                 {
                     return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
                 }
@@ -265,17 +303,19 @@ namespace IdentityAuthGuard.Services.UserServices
             catch (SecurityTokenExpiredException)
             {
                 var jwtToken = new JwtSecurityToken(token);
+
                 if (jwtToken.ValidTo < DateTime.UtcNow &&
                     jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var email = jwtToken.Claims.Where(x => x.Type == ClaimTypes.Email)
-                        .Select(x => x.Value)
-                        .First();
+                    var email = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
 
-                    return (null, email);
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        return (null, email);
+                    }
                 }
 
-                return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
+                return (Response.Full((int)HttpStatusCode.Unauthorized, "Token expired"), string.Empty);
             }
             catch
             {
