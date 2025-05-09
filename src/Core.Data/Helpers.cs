@@ -21,9 +21,10 @@ namespace Core.Data
         public static TContext CreateDbContext<TContext>(
             string connection,
             string migrationsAssembly,
-            DbTypes dbType) where TContext : DbContext
+            DbTypes dbType,
+            DbContextOptionsBuilder? optionsBuilder = null) where TContext : DbContext
         {
-            var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+            optionsBuilder ??= new DbContextOptionsBuilder<TContext>();
 
 #if DEBUG
             optionsBuilder.EnableSensitiveDataLogging();

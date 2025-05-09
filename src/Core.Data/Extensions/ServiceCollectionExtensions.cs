@@ -26,7 +26,7 @@ namespace Core.Data.Extensions
                 var factory = provider.GetRequiredService<IDbContextFactory<TReadDbContext>>();
                 var mediator = provider.GetRequiredService<IMediator>();
 
-                return new UnitOfWork<TReadDbContext>(factory, mediator, typeof(ReadRepository<>));
+                return new UnitOfWork<TReadDbContext>(factory, typeof(ReadRepository<>));
             });
 
             services.AddScoped<IWriteUnitOfWork>(provider =>
@@ -34,7 +34,7 @@ namespace Core.Data.Extensions
                 var factory = provider.GetRequiredService<IDbContextFactory<TWriteDbContext>>();
                 var mediator = provider.GetRequiredService<IMediator>();
 
-                return new UnitOfWork<TWriteDbContext>(factory, mediator, typeof(WriteRepository<>));
+                return new UnitOfWork<TWriteDbContext>(factory, typeof(WriteRepository<>));
             });
         }
     }

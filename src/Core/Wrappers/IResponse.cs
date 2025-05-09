@@ -13,9 +13,9 @@ namespace Core.Wrappers
         int Code { get; }
 
         /// <summary>
-        /// Gets the error message of the response, if any.
+        /// Gets the message of the response, if any.
         /// </summary>
-        string ErrorMessage { get; }
+        string Message { get; }
     }
 
     /// <summary>

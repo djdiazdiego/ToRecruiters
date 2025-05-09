@@ -73,9 +73,10 @@ namespace IdentityAuthGuard.Extensions
 
                 // Creates the database context using the provided connection string, migrations assembly, and database type.
                 Helpers.CreateDbContext<AppDbContext>(
-                connection,
-                DatabaseConstants.MIGRATIONS_ASSEMBLY,
-                DatabaseConstants.DB_TYPE);
+                    connection,
+                    DatabaseConstants.MIGRATIONS_ASSEMBLY,
+                    DatabaseConstants.DB_TYPE,
+                    options);
             });
         }
     }

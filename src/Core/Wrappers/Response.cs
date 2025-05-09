@@ -11,10 +11,10 @@ namespace Core.Wrappers
     public class Response : IResponse
     {
         /// <inheritdoc />
-        public Response(int code, string errorMessage)
+        public Response(int code, string message)
         {
             Code = code;
-            ErrorMessage = errorMessage;
+            Message = message;
         }
 
         /// <inheritdoc />
@@ -26,7 +26,7 @@ namespace Core.Wrappers
 
         /// <inheritdoc />
         [DataMember]
-        public string ErrorMessage { get; set; }
+        public string Message { get; set; }
 
         /// <summary>
         /// Gets a default successful response (200 OK).
@@ -38,9 +38,9 @@ namespace Core.Wrappers
         /// Creates a new response with a specific code and error message.
         /// </summary>
         /// <param name="code">The status code of the response.</param>
-        /// <param name="errorMessage">The error message of the response.</param>
+        /// <param name="message">The error message of the response.</param>
         /// <returns>A new <see cref="Response"/> instance.</returns>
-        public static Response Full(int code, string errorMessage) => new Response(code, errorMessage);
+        public static Response Full(int code, string message) => new Response(code, message);
     }
 
     /// <summary>
@@ -51,10 +51,10 @@ namespace Core.Wrappers
     public sealed class Response<TData> : Response, IResponse<TData> where TData : class
     {
         /// <inheritdoc />
-        public Response(int code, string errorMessage, TData data)
+        public Response(int code, string message, TData data)
         {
             Code = code;
-            ErrorMessage = errorMessage;
+            Message = message;
             Data = data;
         }
 
@@ -72,8 +72,8 @@ namespace Core.Wrappers
         public static new Response<TData> Ok(TData data) => new Response<TData>(data);
 
         /// <inheritdoc />
-        public static Response Full(int code, string errorMessage, TData data) =>
-            new Response<TData>(code, errorMessage, data);
+        public static Response Full(int code, string message, TData data) =>
+            new Response<TData>(code, message, data);
     }
 
     /// <summary>
@@ -86,14 +86,14 @@ namespace Core.Wrappers
         /// <inheritdoc />
         public PageResponse(
             int code,
-            string errorMessage,
+            string message,
             List<TData> data,
             int pageNumber,
             int pageSize,
             int totalRecords)
         {
             Code = code;
-            ErrorMessage = errorMessage;
+            Message = message;
             Data = data;
             PageNumber = pageNumber;
             PageSize = pageSize;
@@ -138,10 +138,10 @@ namespace Core.Wrappers
         /// <inheritdoc />
         public static PageResponse<TData> Full(
             int code,
-            string errorMessage,
+            string message,
             List<TData> data,
             int pageNumber,
             int pageSize,
-            int totalRecords) => new PageResponse<TData>(code, errorMessage, data, pageNumber, pageSize, totalRecords);
+            int totalRecords) => new PageResponse<TData>(code, message, data, pageNumber, pageSize, totalRecords);
     }
 }

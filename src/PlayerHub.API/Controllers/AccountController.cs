@@ -1,4 +1,5 @@
 ﻿using Core.Security;
+using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.DTOs;
 using IdentityAuthGuard.Services.UserServices;
@@ -25,6 +26,9 @@ namespace PlayerHub.API.Controllers
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost]
         [Authorize(Policy = Schemes.UserScheme, Roles = DefaultRoles.Admin)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Create([FromBody] UserDTO dto)
         {
             return GenerateResponse(await _userService.CreateAccountAsync(dto));
@@ -36,6 +40,11 @@ namespace PlayerHub.API.Controllers
         /// <param name="dto">The login details of the user.</param>
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("login")]
+        [ProducesResponseType<IResponse<TokenDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
             return GenerateResponse(await _userService.LoginAccountAsync(dto));
@@ -47,6 +56,9 @@ namespace PlayerHub.API.Controllers
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("logout")]
         [Authorize(Policy = Schemes.UserScheme)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Logout()
         {
             return GenerateResponse(await _userService.LogoutAsync(IdentityEmail));
@@ -58,6 +70,10 @@ namespace PlayerHub.API.Controllers
         /// <param name="dto">The token details for refreshing.</param>
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("refresh-token")]
+        [ProducesResponseType<IResponse<TokenDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<IResponse>(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RefreshToken([FromBody] TokenDTO dto)
         {
             return GenerateResponse(await _userService.RefreshToken(dto));
