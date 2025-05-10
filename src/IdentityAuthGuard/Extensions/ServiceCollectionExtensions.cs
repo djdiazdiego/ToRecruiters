@@ -5,6 +5,7 @@ using IdentityAuthGuard.Models;
 using IdentityAuthGuard.Services.GuidGeneratorServices;
 using IdentityAuthGuard.Services.UserServices;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,22 +63,24 @@ namespace IdentityAuthGuard.Extensions
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.AddDbContextFactory<AppDbContext, AppDbContextFactory>(options =>
+            var connection = configuration[$"ConnectionStrings:{DatabaseConstants.CONNECTION_STRING}"];
+
+            if (string.IsNullOrWhiteSpace(connection))
             {
-                var connection = configuration[$"ConnectionStrings:{DatabaseConstants.CONNECTION_STRING}"];
+                throw new InvalidOperationException("The connection string was not found in the configuration collection.");
+            }
 
-                if (string.IsNullOrWhiteSpace(connection))
-                {
-                    throw new InvalidOperationException("The connection string was not found in the configuration collection.");
-                }
-
-                // Creates the database context using the provided connection string, migrations assembly, and database type.
-                Helpers.CreateDbContext<AppDbContext>(
+            services.AddDbContext<AppDbContext>((provider, options) =>
+            {
+                Helpers.ConfigureDbContextOptions<AppDbContext>(
                     connection,
                     DatabaseConstants.MIGRATIONS_ASSEMBLY,
                     DatabaseConstants.DB_TYPE,
+                    null,
                     options);
             });
+
+            services.AddSingleton<IDbContextFactory<AppDbContext>>(new AppDbContextFactory(configuration));
         }
     }
 }

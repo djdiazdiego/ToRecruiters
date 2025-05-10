@@ -1,6 +1,5 @@
 ﻿using Core.Data.Repositories;
 using Core.Data.UnitOfWorks;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,7 +23,6 @@ namespace Core.Data.Extensions
             services.AddTransient<IReadUnitOfWork>(provider =>
             {
                 var factory = provider.GetRequiredService<IDbContextFactory<TReadDbContext>>();
-                var mediator = provider.GetRequiredService<IMediator>();
 
                 return new UnitOfWork<TReadDbContext>(factory, typeof(ReadRepository<>));
             });
@@ -32,7 +30,6 @@ namespace Core.Data.Extensions
             services.AddScoped<IWriteUnitOfWork>(provider =>
             {
                 var factory = provider.GetRequiredService<IDbContextFactory<TWriteDbContext>>();
-                var mediator = provider.GetRequiredService<IMediator>();
 
                 return new UnitOfWork<TWriteDbContext>(factory, typeof(WriteRepository<>));
             });

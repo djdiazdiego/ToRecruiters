@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace Core.Data.Factories
@@ -16,6 +17,7 @@ namespace Core.Data.Factories
         private readonly string? _connection;
         private readonly string _migrationsAssembly;
         private readonly DbTypes _dbType;
+        private readonly IEnumerable<IInterceptor>? _interceptors;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DbContextFactory{TContext}"/> class.
@@ -64,6 +66,37 @@ namespace Core.Data.Factories
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="DbContextFactory{TContext}"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration object used to retrieve settings.</param>
+        /// <param name="interceptors">A collection of <see cref="IInterceptor"/> instances to be used by the DbContext.</param>
+        /// <param name="connectionString">The key of the connection string in the configuration.</param>
+        /// <param name="migrationsAssembly">The name of the assembly containing the EF Core migrations.</param>
+        /// <param name="dbType">The type of the database to be used.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="configuration"/> object is null.</exception>
+        protected DbContextFactory(
+            IConfiguration configuration,
+            IEnumerable<IInterceptor>? interceptors,
+            string connectionString,
+            string migrationsAssembly,
+            DbTypes dbType)
+        {
+            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+
+            _connection = configuration.GetConnectionString(connectionString);
+
+            EnsureConnectionString();
+
+            _dbType = dbType;
+            _migrationsAssembly = migrationsAssembly;
+
+            if (interceptors != null)
+            {
+                _interceptors = interceptors;
+            }
+        }
+
+        /// <summary>
         /// Creates a new instance of the <typeparamref name="TContext"/> using the provided arguments.
         /// </summary>
         /// <param name="args">Optional arguments, such as a connection string.</param>
@@ -78,7 +111,7 @@ namespace Core.Data.Factories
                 throw new ArgumentException("The database connection string cannot be null or empty.", nameof(args));
             }
 
-            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType);
+            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType, _interceptors);
         }
 
         /// <summary>
@@ -87,9 +120,8 @@ namespace Core.Data.Factories
         /// <returns>An instance of <typeparamref name="TContext"/>.</returns>
         public TContext CreateDbContext()
         {
-            return CreateDbContext([]);
+            return CreateDbContext(Array.Empty<string>());
         }
-
 
         /// <summary>
         /// Ensures that the connection string is not null or empty.
