@@ -76,7 +76,6 @@ namespace IdentityAuthGuard.Extensions
                     connection,
                     DatabaseConstants.MIGRATIONS_ASSEMBLY,
                     DatabaseConstants.DB_TYPE,
-                    null,
                     options);
             });
 

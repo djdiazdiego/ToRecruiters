@@ -16,6 +16,8 @@ namespace PlayerHub.API.Extensions
     /// </summary>
     internal static class ServiceCollectionExtensions
     {
+        public const string PLAYER_HUB_CORS_POLICY = "PlayerHubCorsPolicy";
+
         /// <summary>
         /// Adds API-related services to the service collection.
         /// </summary>
@@ -43,7 +45,7 @@ namespace PlayerHub.API.Extensions
         {
             services.AddCors(options =>
                 {
-                    options.AddPolicy("PlayerHubCorsPolicy", corsPolicy =>
+                    options.AddPolicy(PLAYER_HUB_CORS_POLICY, corsPolicy =>
                     {
                         corsPolicy.WithHeaders("Content-Type", "Authorization")
                                 .WithMethods("GET", "POST", "PUT", "DELETE")

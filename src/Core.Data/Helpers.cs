@@ -15,20 +15,20 @@ namespace Core.Data
         /// <param name="connection">The connection string to the database.</param>
         /// <param name="migrationsAssembly">The assembly containing the migrations.</param>
         /// <param name="dbType">The type of the database (e.g., SQL Server, PostgreSQL).</param>
-        /// <param name="interceptors">Optional collection of interceptors to add to the DbContext.</param>
         /// <param name="optionsBuilder">Optional DbContextOptionsBuilder to configure the DbContext.</param>
+        /// <param name="interceptors">Optional collection of interceptors to add to the DbContext.</param>
         /// <returns>An instance of the specified DbContext type.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the DbContext instance cannot be created.</exception>
         public static TContext CreateDbContext<TContext>(
            string connection,
            string migrationsAssembly,
            DbTypes dbType,
-           IEnumerable<IInterceptor>? interceptors = null,
-           DbContextOptionsBuilder? optionsBuilder = null) where TContext : DbContext
+           DbContextOptionsBuilder? optionsBuilder = null,
+           IEnumerable<IInterceptor>? interceptors = null) where TContext : DbContext
         {
             optionsBuilder ??= new DbContextOptionsBuilder<TContext>();
 
-            ConfigureDbContextOptions<TContext>(connection, migrationsAssembly, dbType, interceptors, optionsBuilder);
+            ConfigureDbContextOptions<TContext>(connection, migrationsAssembly, dbType, optionsBuilder, interceptors);
 
             return CreateDbContext<TContext>(optionsBuilder);
         }
@@ -40,15 +40,15 @@ namespace Core.Data
         /// <param name="connection">The connection string to the database.</param>
         /// <param name="migrationsAssembly">The assembly containing the migrations.</param>
         /// <param name="dbType">The type of the database (e.g., SQL Server, PostgreSQL).</param>
-        /// <param name="interceptors">Optional collection of interceptors to add to the DbContext.</param>
         /// <param name="optionsBuilder">The DbContextOptionsBuilder to configure.</param>
+        /// <param name="interceptors">Optional collection of interceptors to add to the DbContext.</param>
         /// <exception cref="InvalidOperationException">Thrown if the database type is unsupported.</exception>
         public static void ConfigureDbContextOptions<TContext>(
             string connection,
             string migrationsAssembly,
             DbTypes dbType,
-            IEnumerable<IInterceptor>? interceptors,
-            DbContextOptionsBuilder optionsBuilder) where TContext : DbContext
+            DbContextOptionsBuilder optionsBuilder,
+            IEnumerable<IInterceptor>? interceptors = null) where TContext : DbContext
         {
 #if DEBUG
             optionsBuilder.EnableSensitiveDataLogging();

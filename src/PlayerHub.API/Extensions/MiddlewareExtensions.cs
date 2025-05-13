@@ -3,7 +3,7 @@
     /// <summary>
     /// Provides extension methods for configuring the web application.
     /// </summary>
-    internal static class WebApplicationExtensions
+    internal static class MiddlewareExtensions
     {
         /// <summary>
         /// Configures Swagger and Swagger UI for the application.

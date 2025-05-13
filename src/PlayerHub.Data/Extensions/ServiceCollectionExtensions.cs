@@ -1,5 +1,4 @@
-﻿using Core.Data;
-using Core.Data.Extensions;
+﻿using Core.Data.Extensions;
 using Core.Data.Interceptors;
 using IdentityAuthGuard.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -29,33 +28,11 @@ namespace PlayerHub.Data.Extensions
                 throw new InvalidOperationException("The connection string is missing or empty in the configuration.");
             }
 
-            services.AddDbContext<WriteDbContext>((provider, options) =>
-            {
-                var interceptors = provider.GetRequiredService<ISaveChangesInterceptor>();
-
-                Helpers.ConfigureDbContextOptions<ReadDbContext>(
-                    connection,
-                    Constants.MIGRATIONS_ASSEMBLY,
-                    DbTypes.SqlServer,
-                    [interceptors],
-                    options);
-            });
-
             services.AddSingleton<IDbContextFactory<WriteDbContext>>(provider =>
             {
                 var interceptors = provider.GetRequiredService<ISaveChangesInterceptor>();
 
                 return new WriteDbContextFactory(configuration, [interceptors]);
-            });
-
-            services.AddDbContext<ReadDbContext>(options =>
-            {
-                Helpers.ConfigureDbContextOptions<ReadDbContext>(
-                    connection,
-                    Constants.MIGRATIONS_ASSEMBLY,
-                    DbTypes.SqlServer,
-                    null,
-                    options);
             });
 
             services.AddSingleton<IDbContextFactory<ReadDbContext>>(new ReadDbContextFactory(configuration));

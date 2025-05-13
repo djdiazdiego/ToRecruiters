@@ -1,6 +1,9 @@
-﻿using Core.Head.Behaviors;
+﻿using Core.Data;
+using Core.Head.Behaviors;
 using FluentValidation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Reflection;
 
 namespace Core.Head.Extensions
@@ -63,6 +66,48 @@ namespace Core.Head.Extensions
                     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
                 }
             });
+        }
+
+        /// <summary>
+        /// Registers health check services for the specified database type and connection string.
+        /// </summary>
+        /// <param name="services">The service collection to add the health checks to.</param>
+        /// <param name="configuration">The application configuration containing connection strings.</param>
+        /// <param name="connectionString">The name of the connection string in the configuration.</param>
+        /// <param name="dbType">The type of database to check. Defaults to <see cref="DbTypes.SqlServer"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="configuration"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the connection string is missing or empty.</exception>
+        public static void AddHealthChecksServices(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            string connectionString,
+            DbTypes dbType = DbTypes.SqlServer)
+        {
+            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+
+            var connection = configuration.GetConnectionString(connectionString);
+
+            if (string.IsNullOrWhiteSpace(connection))
+            {
+                throw new InvalidOperationException("The connection string is missing or empty in the configuration.");
+            }
+
+            if (dbType == DbTypes.SqlServer)
+            {
+                services.AddHealthChecks()
+                    .AddSqlServer(
+                        connectionString: connection,
+                        failureStatus: HealthStatus.Unhealthy,
+                        tags: [nameof(DbTypes.SqlServer).ToLowerInvariant()]);
+            }
+            else if (dbType == DbTypes.PostgreSQL)
+            {
+                services.AddHealthChecks()
+                    .AddNpgSql(
+                        connectionString: connection,
+                        failureStatus: HealthStatus.Unhealthy,
+                        tags: [nameof(DbTypes.PostgreSQL).ToLowerInvariant()]);
+            }
         }
     }
 }

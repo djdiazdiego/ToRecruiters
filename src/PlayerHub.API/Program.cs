@@ -1,4 +1,6 @@
+using Core.Data;
 using Core.Data.Extensions;
+using Core.Head.Extensions;
 using Core.Security;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Data.Contexts;
@@ -14,6 +16,7 @@ using System.Reflection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register application services
+builder.Services.AddHealthChecksServices(builder.Configuration, Constants.CONNECTION_STRING, DbTypes.SqlServer); // Add health check services
 builder.Services.AddAPIServices(builder.Environment); // Add API-specific services
 builder.Services.AddDataServices(builder.Configuration); // Add data-related services
 builder.Services.AddApplicationServices(); // Add application-level services
@@ -41,13 +44,12 @@ else
 
 // Configure middleware for exception handling
 app.UseExceptionHandler();
-
 // Redirect HTTP requests to HTTPS
 app.UseHttpsRedirection();
 // Enable routing
 app.UseRouting();
 // Enable Cross-Origin Resource Sharing
-app.UseCors("PlayerHubCorsPolicy");
+app.UseCors(PlayerHub.API.Extensions.ServiceCollectionExtensions.PLAYER_HUB_CORS_POLICY);
 // Enable rate limiting middleware
 app.UseRateLimiter();
 
@@ -63,6 +65,9 @@ await app.Services.ApplySeedAsync([
 
 // Map API controllers to routes
 app.MapControllers();
+
+// Registers health check endpoints for monitoring application health
+app.MapHealthChecks(DbTypes.SqlServer);
 
 // Run the application
 app.Run();

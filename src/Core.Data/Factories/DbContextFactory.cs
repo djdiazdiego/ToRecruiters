@@ -111,7 +111,7 @@ namespace Core.Data.Factories
                 throw new ArgumentException("The database connection string cannot be null or empty.", nameof(args));
             }
 
-            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType, _interceptors);
+            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType, interceptors: _interceptors);
         }
 
         /// <summary>

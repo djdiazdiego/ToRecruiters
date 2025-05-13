@@ -4,7 +4,7 @@ using IdentityAuthGuard.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IdentityAuthGuard.Seeds
+namespace IdentityAuthGuard.Data.Seeds
 {
     /// <summary>
     /// Represents a seed class for initializing default user roles and a default admin user.
