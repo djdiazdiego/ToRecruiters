@@ -83,7 +83,7 @@ namespace IdentityAuthGuard.Services.UserServices
 
             if (!result.Succeeded)
             {
-                return result.ErrorResponse();
+                return result.ErrorResponse("User creation failed due to unknown error.");
             }
 
             foreach (var role in validRoles)
