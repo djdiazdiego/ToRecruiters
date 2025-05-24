@@ -32,7 +32,6 @@ namespace PlayerHub.API.Extensions
             services.AddCorsServices(environment);
             services.AddRateLimiterServices();
             services.AddRouting(x => x.LowercaseUrls = true);
-            services.AddGlobalExceptionHandlerServices();
             services.AddSwaggerServices(environment);
         }
 
@@ -119,16 +118,6 @@ namespace PlayerHub.API.Extensions
                         .SetMaxTop(5000)
                         .Expand();
                 });
-        }
-
-        /// <summary>
-        /// Configures global exception handling services.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        private static void AddGlobalExceptionHandlerServices(this IServiceCollection services)
-        {
-            services.AddProblemDetails();
-            services.AddExceptionHandler<GlobalExceptionHandler>();
         }
 
         /// <summary>

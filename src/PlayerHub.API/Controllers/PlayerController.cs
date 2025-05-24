@@ -34,7 +34,7 @@ namespace PlayerHub.API.Controllers
             var query = new PlayerQuery(oData);
             var response = await _mediator.Send(query, cancellationToken);
 
-            return GenerateResponse(response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace PlayerHub.API.Controllers
             var command = new CreatePlayerCommand(dto);
             var response = await _mediator.Send(command, cancellationToken);
 
-            return GenerateResponse(response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace PlayerHub.API.Controllers
             var command = new UpdatePlayerCommand(dto);
             var response = await _mediator.Send(command, cancellationToken);
 
-            return GenerateResponse(response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace PlayerHub.API.Controllers
             var command = new DeletePlayerCommand(id);
             var response = await _mediator.Send(command, cancellationToken);
 
-            return GenerateResponse(response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace PlayerHub.API.Controllers
             var query = new BestPlayerQuery(dto);
             var response = await _mediator.Send(query, cancellationToken);
 
-            return GenerateResponse(response);
+            return Ok(response);
         }
     }
 }

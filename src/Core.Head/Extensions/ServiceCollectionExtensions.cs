@@ -1,5 +1,6 @@
 ﻿using Core.Data;
 using Core.Head.Behaviors;
+using Core.Head.Exceptions.Handlers;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +67,16 @@ namespace Core.Head.Extensions
                     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
                 }
             });
+        }
+
+        /// <summary>
+        /// Registers global exception handler services, including ProblemDetails and a custom exception handler.
+        /// </summary>
+        /// <param name="services">The service collection to add the exception handler services to.</param>
+        public static void AddGlobalExceptionHandlerServices(this IServiceCollection services)
+        {
+            services.AddProblemDetails();
+            services.AddExceptionHandler<GlobalExceptionHandler>();
         }
 
         /// <summary>

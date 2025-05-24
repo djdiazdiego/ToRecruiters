@@ -23,6 +23,7 @@ builder.Services.AddApplicationServices(); // Add application-level services
 builder.Services.AddIdentityAuthGuardServices(); // Add Identity and AuthGuard services
 builder.Services.AddAuthenticationServices(builder.Configuration); // Add authentication services
 builder.Services.AddAuthorizationServices(builder.Configuration); // Add authorization services
+builder.Services.AddGlobalExceptionHandlerServices(); // Registers global exception handler services for consistent error handling across the API
 
 // Build the application
 var app = builder.Build();

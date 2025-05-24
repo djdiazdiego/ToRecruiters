@@ -27,11 +27,11 @@ namespace PlayerHub.API.Controllers
         [HttpPost]
         [Authorize(Policy = Schemes.UserScheme, Roles = DefaultRoles.Admin)]
         [ProducesResponseType<IResponse>(StatusCodes.Status200OK)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status409Conflict)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Create([FromBody] UserDTO dto)
         {
-            return GenerateResponse(await _userService.CreateAccountAsync(dto));
+            return Ok(await _userService.CreateAccountAsync(dto));
         }
 
         /// <summary>
@@ -41,13 +41,13 @@ namespace PlayerHub.API.Controllers
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("login")]
         [ProducesResponseType<IResponse<TokenDTO>>(StatusCodes.Status200OK)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            return GenerateResponse(await _userService.LoginAccountAsync(dto));
+            return Ok(await _userService.LoginAccountAsync(dto));
         }
 
         /// <summary>
@@ -57,11 +57,12 @@ namespace PlayerHub.API.Controllers
         [HttpPost("logout")]
         [Authorize(Policy = Schemes.UserScheme)]
         [ProducesResponseType<IResponse>(StatusCodes.Status200OK)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Logout()
         {
-            return GenerateResponse(await _userService.LogoutAsync(IdentityEmail));
+            return Ok(await _userService.LogoutAsync(IdentityEmail));
         }
 
         /// <summary>
@@ -71,12 +72,12 @@ namespace PlayerHub.API.Controllers
         /// <returns>An HTTP response indicating the result of the operation.</returns>
         [HttpPost("refresh-token")]
         [ProducesResponseType<IResponse<TokenDTO>>(StatusCodes.Status200OK)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status404NotFound)]
-        [ProducesResponseType<IResponse>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RefreshToken([FromBody] TokenDTO dto)
         {
-            return GenerateResponse(await _userService.RefreshToken(dto));
+            return Ok(await _userService.RefreshToken(dto));
         }
     }
 }

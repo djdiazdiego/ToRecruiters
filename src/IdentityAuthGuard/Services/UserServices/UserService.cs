@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -39,14 +38,14 @@ namespace IdentityAuthGuard.Services.UserServices
         {
             if (userDTO is null)
             {
-                return Response.Full((int)HttpStatusCode.BadRequest, "Model is empty");
+                throw new BadRequestException("Model is empty");
             }
 
             var user = await _userManager.FindByEmailAsync(userDTO.Email);
 
             if (user is not null)
             {
-                return Response.Full((int)HttpStatusCode.Conflict, "User already registered");
+                throw new AlreadyExistsException($"User with email {userDTO.Email} already exists.");
             }
 
             if (userDTO.Roles is null || userDTO.Roles.Count == 0)
@@ -81,10 +80,7 @@ namespace IdentityAuthGuard.Services.UserServices
 
             var result = await _userManager.CreateAsync(user, userDTO.Password);
 
-            if (!result.Succeeded)
-            {
-                return result.ErrorResponse("User creation failed due to unknown error.");
-            }
+            IdentityResultExtensions.ErrorResponse(result, "User creation failed.");
 
             foreach (var role in validRoles)
             {
@@ -99,36 +95,33 @@ namespace IdentityAuthGuard.Services.UserServices
         {
             if (loginDTO is null)
             {
-                return Response.Full((int)HttpStatusCode.BadRequest, "Model is empty");
+                throw new BadRequestException("Model is empty");
             }
 
-            var user = await _userManager.FindByEmailAsync(loginDTO.Email);
-
-            if (user is null)
-            {
-                return Response.Full((int)HttpStatusCode.NotFound, $"User not found with email: {loginDTO.Email}");
-            }
+            var user = await _userManager.FindByEmailAsync(loginDTO.Email) ??
+                throw new NotFoundException($"User with email {loginDTO.Email} not found.");
 
             if (await _userManager.IsLockedOutAsync(user))
             {
-                return Response.Full((int)HttpStatusCode.Forbidden, "User is locked out");
+                throw new ForbiddenException("User is locked out.");
             }
 
             var isCorrectPassword = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
 
             if (!isCorrectPassword)
             {
-                await _userManager.AccessFailedAsync(user);
+                IdentityResultExtensions.ErrorResponse(await _userManager.AccessFailedAsync(user));
+                IdentityResultExtensions.ErrorResponse(await _userManager.UpdateSecurityStampAsync(user));
 
                 if (await _userManager.IsLockedOutAsync(user))
                 {
-                    return Response.Full((int)HttpStatusCode.Forbidden, "User is locked out due to multiple failed login attempts");
+                    throw new ForbiddenException("User is locked out due to multiple failed login attempts.");
                 }
 
-                return Response.Full((int)HttpStatusCode.Unauthorized, "Wrong password");
+                throw new UnauthorizedAccessException("Wrong password.");
             }
 
-            await _userManager.ResetAccessFailedCountAsync(user);
+            IdentityResultExtensions.ErrorResponse(await _userManager.ResetAccessFailedCountAsync(user));
 
             return await GenerateTokenAsync(user, true);
         }
@@ -138,28 +131,20 @@ namespace IdentityAuthGuard.Services.UserServices
         {
             if (dto is null || string.IsNullOrWhiteSpace(dto.AccessToken) || string.IsNullOrWhiteSpace(dto.RefreshToken))
             {
-                return Response.Full((int)HttpStatusCode.BadRequest, "Invalid token data");
+                throw new BadRequestException(dto is null ? "Model is empty or invalid token data" : "Invalid token data");
             }
 
-            var (response, email) = ValidateExpiredToken(dto.AccessToken);
+            var email = ValidateExpiredToken(dto.AccessToken);
 
-            if (response != null)
-            {
-                return response;
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user is null)
-            {
-                return Response.Full((int)HttpStatusCode.NotFound, "User not found");
-            }
+            var user = await _userManager.FindByEmailAsync(email) ?? 
+                throw new NotFoundException($"User with email {email} not found.");
 
             if (string.IsNullOrWhiteSpace(user.RefreshToken) ||
                 user.RefreshToken != dto.RefreshToken ||
                 user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                return Response.Full((int)HttpStatusCode.Unauthorized, "Invalid or expired refresh token");
+                IdentityResultExtensions.ErrorResponse(await _userManager.UpdateSecurityStampAsync(user));
+                throw new UnauthorizedAccessException("Invalid or expired refresh token.");
             }
 
             return await GenerateTokenAsync(user, false);
@@ -170,30 +155,23 @@ namespace IdentityAuthGuard.Services.UserServices
         {
             if (string.IsNullOrWhiteSpace(email))
             {
-                return Response.Full((int)HttpStatusCode.BadRequest, "Email cannot be null or empty");
+                throw new BadRequestException("Email cannot be null or empty");
             }
 
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                return Response.Full((int)HttpStatusCode.NotFound, $"User not found with email: {email}");
-            }
+            var user = await _userManager.FindByEmailAsync(email) ??
+                throw new NotFoundException($"User not found with email: {email}");
 
             if (string.IsNullOrWhiteSpace(user.RefreshToken))
             {
-                return Response.Full((int)HttpStatusCode.BadRequest, "User is not logged in");
+                throw new UnauthorizedAccessException("User is not logged in.");
             }
+
+            IdentityResultExtensions.ErrorResponse(await _userManager.UpdateSecurityStampAsync(user));
 
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddYears(-1);
 
-            var userUpdatedResult = await _userManager.UpdateAsync(user);
-
-            if (!userUpdatedResult.Succeeded)
-            {
-                return userUpdatedResult.ErrorResponse();
-            }
+            IdentityResultExtensions.ErrorResponse(await _userManager.UpdateAsync(user));
 
             return Response.Ok;
         }
@@ -215,12 +193,7 @@ namespace IdentityAuthGuard.Services.UserServices
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1);
             }
 
-            var userUpdatedResult = await _userManager.UpdateAsync(user);
-
-            if (!userUpdatedResult.Succeeded)
-            {
-                return userUpdatedResult.ErrorResponse();
-            }
+            IdentityResultExtensions.ErrorResponse(await _userManager.UpdateAsync(user));
 
             var roles = await _userManager.GetRolesAsync(user);
             var roleClaims = roles?.Select(x => new Claim(ClaimTypes.Role, x)).ToArray() ?? [];
@@ -276,7 +249,7 @@ namespace IdentityAuthGuard.Services.UserServices
         /// </summary>
         /// <param name="token">The expired token to validate.</param>
         /// <returns>A tuple containing a response and the extracted email.</returns>
-        private (Response?, string) ValidateExpiredToken(string token)
+        private string ValidateExpiredToken(string token)
         {
             var parameters = Helpers.GetTokenValidationParameters(_issuer, _audience, _key);
             var handler = new JwtSecurityTokenHandler();
@@ -288,17 +261,17 @@ namespace IdentityAuthGuard.Services.UserServices
                 if (securityToken is not JwtSecurityToken jwtToken ||
                     !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
+                    throw new UnauthorizedAccessException("Invalid token signature.");
                 }
 
                 var email = principal?.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrWhiteSpace(email))
                 {
-                    return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
+                    throw new UnauthorizedAccessException("Email claim not found in token.");
                 }
 
-                return (null, email);
+                return email;
             }
             catch (SecurityTokenExpiredException)
             {
@@ -311,15 +284,15 @@ namespace IdentityAuthGuard.Services.UserServices
 
                     if (!string.IsNullOrWhiteSpace(email))
                     {
-                        return (null, email);
+                        return email;
                     }
                 }
 
-                return (Response.Full((int)HttpStatusCode.Unauthorized, "Token expired"), string.Empty);
+                throw new UnauthorizedAccessException("Token expired or email claim not found.");
             }
             catch
             {
-                return (Response.Full((int)HttpStatusCode.Unauthorized, "Invalid token"), string.Empty);
+                throw new UnauthorizedAccessException("Invalid token.");
             }
         }
     }
