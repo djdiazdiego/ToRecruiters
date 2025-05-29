@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Core.BaseModels;
+using Core.Data.Helpers;
 using Core.Data.UnitOfWorks;
 using Core.Head.CQRS;
-using Core.Head.Helpers;
 using Core.Wrappers;
 using PlayerHub.Application.DTOs.PlayerDTOs;
 using PlayerHub.Domain;
@@ -20,7 +19,7 @@ namespace PlayerHub.Application.Queries
         {
             var playerRepository = _readUnitOfWork.GetRepository<Player>();
 
-            var response = await QueryHelpers.GetPageDataAsync<Player, PlayerDTO>(
+            var response = await ODataQueryHelpers.GetPageDataAsync<Player, PlayerDTO>(
                 playerRepository.GetQuery(),
                 request.OData,
                 _mapper,

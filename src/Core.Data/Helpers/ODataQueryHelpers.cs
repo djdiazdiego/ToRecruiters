@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace Core.Head.Helpers
+namespace Core.Data.Helpers
 {
-    public static class QueryHelpers
+    public static class ODataQueryHelpers
     {
         /// <summary>
         /// Retrieves paginated data from a queryable source, applying OData query options, search, and mapping to a response type.

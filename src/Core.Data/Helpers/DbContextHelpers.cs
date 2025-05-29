@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace Core.Data
+namespace Core.Data.Helpers
 {
     /// <summary>
     /// Provides helper methods for creating and configuring DbContext instances.
     /// </summary>
-    public static class Helpers
+    public static class DbContextHelpers
     {
         /// <summary>
         /// Creates a new instance of the specified DbContext type.

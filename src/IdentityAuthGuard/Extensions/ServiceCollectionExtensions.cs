@@ -1,4 +1,4 @@
-﻿using Core.Data;
+﻿using Core.Data.Helpers;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Data.Contexts;
 using IdentityAuthGuard.Models;
@@ -72,7 +72,7 @@ namespace IdentityAuthGuard.Extensions
 
             services.AddDbContext<AppDbContext>((provider, options) =>
             {
-                Helpers.ConfigureDbContextOptions<AppDbContext>(
+                DbContextHelpers.ConfigureDbContextOptions<AppDbContext>(
                     connection,
                     DatabaseConstants.MIGRATIONS_ASSEMBLY,
                     DatabaseConstants.DB_TYPE,

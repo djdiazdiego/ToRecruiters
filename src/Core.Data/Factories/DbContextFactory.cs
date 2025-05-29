@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.Data.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -111,7 +112,7 @@ namespace Core.Data.Factories
                 throw new ArgumentException("The database connection string cannot be null or empty.", nameof(args));
             }
 
-            return Helpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType, interceptors: _interceptors);
+            return Helpers.DbContextHelpers.CreateDbContext<TContext>(connection, _migrationsAssembly, _dbType, interceptors: _interceptors);
         }
 
         /// <summary>
