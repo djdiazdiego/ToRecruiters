@@ -22,11 +22,11 @@ namespace Core.Data.UnitOfWorks
         private readonly Dictionary<Type, IRepository> _repositories = [];
 
         /// <inheritdoc />
-        WriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>() =>
+        IWriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>() =>
             GetRepository<WriteRepository<TEntity>>();
 
         /// <inheritdoc />
-        ReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>() =>
+        IReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>() =>
             GetRepository<ReadRepository<TEntity>>();
 
         /// <inheritdoc />

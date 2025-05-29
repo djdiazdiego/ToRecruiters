@@ -1,5 +1,4 @@
 ﻿using Core.Exceptions;
-using Core.Head.Exceptions.Handlers;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;

@@ -12,7 +12,7 @@ namespace Core.Data.UnitOfWorks
         /// Gets a read repository for the specified entity type.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity.</typeparam>
-        /// <returns>An instance of <see cref="ReadRepository{TEntity}"/> for the specified entity type.</returns>
-        ReadRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity;
+        /// <returns>An instance of <see cref="IReadRepository{TEntity}"/> for the specified entity type.</returns>
+        IReadRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity;
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Core.Head.Exceptions.Handlers;
+namespace Core.Head.Handlers;
 /// <summary>
 /// Handles global exceptions and formats them into a standardized response.
 /// </summary>

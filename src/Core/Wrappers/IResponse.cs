@@ -10,12 +10,12 @@ namespace Core.Wrappers
         /// <summary>
         /// Gets the status code of the response.
         /// </summary>
-        int Code { get; }
+        int Status { get; }
 
         /// <summary>
-        /// Gets the message of the response, if any.
+        /// Gets the message details of the response, if any.
         /// </summary>
-        string Message { get; }
+        string Details { get; }
     }
 
     /// <summary>

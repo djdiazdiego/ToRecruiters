@@ -13,8 +13,8 @@ namespace Core.Wrappers
         /// <inheritdoc />
         public Response(int code, string message)
         {
-            Code = code;
-            Message = message;
+            Status = code;
+            Details = message;
         }
 
         /// <inheritdoc />
@@ -22,11 +22,11 @@ namespace Core.Wrappers
 
         /// <inheritdoc />
         [DataMember]
-        public int Code { get; set; }
+        public int Status { get; set; }
 
         /// <inheritdoc />
         [DataMember]
-        public string Message { get; set; }
+        public string Details { get; set; }
 
         /// <summary>
         /// Gets a default successful response (200 OK).
@@ -53,8 +53,8 @@ namespace Core.Wrappers
         /// <inheritdoc />
         public Response(int code, string message, TData data)
         {
-            Code = code;
-            Message = message;
+            Status = code;
+            Details = message;
             Data = data;
         }
 
@@ -92,8 +92,8 @@ namespace Core.Wrappers
             int pageSize,
             int totalRecords)
         {
-            Code = code;
-            Message = message;
+            Status = code;
+            Details = message;
             Data = data;
             PageNumber = pageNumber;
             PageSize = pageSize;

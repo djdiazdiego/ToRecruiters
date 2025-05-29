@@ -12,8 +12,8 @@ namespace Core.Data.UnitOfWorks
         /// Gets a write repository for the specified entity type.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity.</typeparam>
-        /// <returns>A <see cref="WriteRepository{TEntity}"/> instance.</returns>
-        WriteRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity;
+        /// <returns>A <see cref="IWriteRepository{TEntity}"/> instance.</returns>
+        IWriteRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity;
 
         /// <summary>
         /// Saves all changes made in this unit of work asynchronously.

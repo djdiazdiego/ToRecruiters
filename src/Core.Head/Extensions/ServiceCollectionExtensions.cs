@@ -1,6 +1,6 @@
 ﻿using Core.Data;
 using Core.Head.Behaviors;
-using Core.Head.Exceptions.Handlers;
+using Core.Head.Handlers;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
