@@ -1,5 +1,5 @@
 ﻿using Core.Exceptions;
-using Core.Security;
+using Security;
 using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.DTOs;

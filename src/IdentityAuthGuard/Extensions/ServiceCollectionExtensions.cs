@@ -1,4 +1,4 @@
-﻿using Core.Data.Helpers;
+﻿using Core.Infrastructure.Helpers;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Data.Contexts;
 using IdentityAuthGuard.Models;

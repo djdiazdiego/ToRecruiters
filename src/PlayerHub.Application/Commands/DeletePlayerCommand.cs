@@ -1,4 +1,4 @@
-﻿using Core.Head.CQRS;
+﻿using Core.Application.CQRS;
 using Core.Wrappers;
 
 namespace PlayerHub.Application.Commands

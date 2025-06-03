@@ -1,4 +1,4 @@
-﻿using Core.Data.UnitOfWorks;
+﻿using Core.Application.Persistence;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PlayerHub.Domain;

@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Data\Core.Data.csproj" />
-    <ProjectReference Include="..\Core.Security\Core.Security.csproj" />
+    <ProjectReference Include="..\Core.Infrastructure\Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\Security\Security.csproj" />
   </ItemGroup>
 
 </Project>

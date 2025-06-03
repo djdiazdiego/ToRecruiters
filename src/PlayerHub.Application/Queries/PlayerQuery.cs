@@ -1,4 +1,4 @@
-﻿using Core.Head.CQRS;
+﻿using Core.Application.CQRS;
 using Core.Wrappers;
 using Microsoft.AspNetCore.OData.Query;
 using PlayerHub.Application.DTOs.PlayerDTOs;

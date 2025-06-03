@@ -1,5 +1,5 @@
-﻿using Core.Data.Extensions;
-using Core.Data.Interceptors;
+﻿using Core.Infrastructure.Extensions;
+using Core.Infrastructure.Interceptors;
 using IdentityAuthGuard.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

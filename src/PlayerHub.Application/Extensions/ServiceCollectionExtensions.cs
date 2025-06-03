@@ -1,4 +1,4 @@
-﻿using Core.Head.Extensions;
+﻿using Core.Application.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 

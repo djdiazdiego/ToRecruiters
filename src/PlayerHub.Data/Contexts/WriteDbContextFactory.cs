@@ -1,5 +1,5 @@
-﻿using Core.Data;
-using Core.Data.Factories;
+﻿using Core.Infrastructure;
+using Core.Infrastructure.Factories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Diagnostics;

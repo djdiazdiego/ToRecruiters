@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Core.Data.UnitOfWorks;
-using Core.Head.CQRS;
+using Core.Application.CQRS;
+using Core.Application.Persistence;
 using Core.Wrappers;
 using Microsoft.EntityFrameworkCore;
 using PlayerHub.Application.DTOs.PlayerDTOs;

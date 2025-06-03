@@ -1,4 +1,4 @@
-﻿using Core.Data.Seeds;
+﻿using Core.Infrastructure.Seeds;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Models;
 using Microsoft.AspNetCore.Identity;

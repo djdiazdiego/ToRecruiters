@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using Core.Data.Helpers;
-using Core.Data.UnitOfWorks;
-using Core.Head.CQRS;
+using Core.Application.CQRS;
+using Core.Application.Persistence;
+using Core.Infrastructure.Helpers;
 using Core.Wrappers;
 using PlayerHub.Application.DTOs.PlayerDTOs;
 using PlayerHub.Domain;

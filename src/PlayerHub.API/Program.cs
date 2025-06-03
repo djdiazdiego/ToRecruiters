@@ -1,7 +1,6 @@
-using Core.Data;
-using Core.Data.Extensions;
-using Core.Head.Extensions;
-using Core.Security;
+using Core.Infrastructure;
+using Core.Infrastructure.Extensions;
+using Core.Web.Extensions;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.Data.Contexts;
 using IdentityAuthGuard.Extensions;
@@ -10,6 +9,7 @@ using PlayerHub.Application.Extensions;
 using PlayerHub.Data;
 using PlayerHub.Data.Contexts;
 using PlayerHub.Data.Extensions;
+using Security;
 using System.Reflection;
 
 // Create a WebApplication builder

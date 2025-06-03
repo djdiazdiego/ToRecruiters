@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Data\Core.Data.csproj" />
     <ProjectReference Include="..\IdentityAuthGuard\IdentityAuthGuard.csproj" />
     <ProjectReference Include="..\PlayerHub.Domain\PlayerHub.Domain.csproj" />
   </ItemGroup>

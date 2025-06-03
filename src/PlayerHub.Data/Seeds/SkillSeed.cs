@@ -1,5 +1,5 @@
-﻿using Core.Data.Seeds;
-using Core.Data.UnitOfWorks;
+﻿using Core.Application.Persistence;
+using Core.Infrastructure.Seeds;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PlayerHub.Domain;

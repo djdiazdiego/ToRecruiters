@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Head\Core.Head.csproj" />
+    <ProjectReference Include="..\Core.Application\Core.Application.csproj" />
     <ProjectReference Include="..\PlayerHub.Data\PlayerHub.Data.csproj" />
   </ItemGroup>
 

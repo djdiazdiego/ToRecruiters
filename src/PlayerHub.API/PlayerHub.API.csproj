@@ -22,8 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core.Security\Core.Security.csproj" />
+    <ProjectReference Include="..\Core.Web\Core.Web.csproj" />
     <ProjectReference Include="..\PlayerHub.Application\PlayerHub.Application.csproj" />
+    <ProjectReference Include="..\Security\Security.csproj" />
   </ItemGroup>
 
 </Project>

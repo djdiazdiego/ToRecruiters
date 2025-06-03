@@ -1,4 +1,4 @@
-﻿using Core.Security;
+﻿using Security;
 using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using MediatR;
