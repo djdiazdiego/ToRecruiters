@@ -1,5 +1,4 @@
 ﻿using Core.Application.Behaviors;
-using Core.Application.Handlers;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;

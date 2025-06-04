@@ -2,6 +2,8 @@
 using Core.BaseModels;
 using Core.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+using Core.Extensions;
 
 namespace Core.Infrastructure.UnitOfWorks
 {
@@ -11,7 +13,8 @@ namespace Core.Infrastructure.UnitOfWorks
     /// <typeparam name="TContext">The type of the database context.</typeparam>
     /// <param name="factory">The factory used to create instances of the database context.</param>
     /// <param name="repositoryType">The type of the repository to be used.</param>
-    public sealed class UnitOfWork<TContext>(IDbContextFactory<TContext> factory, Type repositoryType) :
+    /// <param name="repositoryAssemblies">The assemblies where repository implementations are located.</param>
+    public sealed class UnitOfWork<TContext>(IDbContextFactory<TContext> factory, Type repositoryType, params Assembly[] repositoryAssemblies) :
         IWriteUnitOfWork,
         IReadUnitOfWork,
         IDisposable
@@ -20,15 +23,34 @@ namespace Core.Infrastructure.UnitOfWorks
         private bool disposedValue;
         private readonly DbContext _context = factory.CreateDbContext();
         private readonly Type _repositoryType = repositoryType;
+        private readonly Assembly[] _repositoryAssemblies = repositoryAssemblies;
         private readonly Dictionary<Type, IRepository> _repositories = [];
 
         /// <inheritdoc />
-        IWriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>() =>
-            GetRepository<WriteRepository<TEntity>>();
+        IWriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>()
+        {
+            var repository = GetRepository<TEntity>();
+
+            if (repository is not IWriteRepository<TEntity> writeRepository)
+            {
+                throw new InvalidOperationException($"Repository for type {typeof(TEntity).Name} is not a write repository.");
+            }
+
+            return writeRepository;
+        }
 
         /// <inheritdoc />
-        IReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>() =>
-            GetRepository<ReadRepository<TEntity>>();
+        IReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>()
+        {
+            var repository = GetRepository<TEntity>();
+
+            if (repository is not IReadRepository<TEntity> writeRepository)
+            {
+                throw new InvalidOperationException($"Repository for type {typeof(TEntity).Name} is not a read repository.");
+            }
+
+            return writeRepository;
+        }
 
         /// <inheritdoc />
         public int SaveChanges()
@@ -43,39 +65,45 @@ namespace Core.Infrastructure.UnitOfWorks
         }
 
         /// <summary>
-        /// Retrieves a repository of the specified type.
+        /// Retrieves a repository of the specified type for a specific entity type.
         /// </summary>
-        /// <typeparam name="TRepository">The type of the repository.</typeparam>
-        /// <returns>An instance of the specified repository type.</returns>
+        /// <typeparam name="TEntity">The type of the entity.</typeparam>
+        /// <returns>An instance of the specified repository type for the given entity type.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the repository type is incorrect or cannot be created.</exception>
-        private TRepository GetRepository<TRepository>() where TRepository : class, IRepository
+        private IRepository GetRepository<TEntity>() where TEntity : class, IEntity
         {
-            var repositoryType = typeof(TRepository);
+            var entityType = typeof(TEntity);
 
-            if (!repositoryType.IsGenericType || repositoryType.GetGenericTypeDefinition() != _repositoryType)
-            {
-                throw new InvalidOperationException($"Incorrect repository type: {repositoryType.Name}");
-            }
-
-            var entityType = repositoryType.GetGenericArguments().First();
-
-            if (_repositories.TryGetValue(entityType, out IRepository? existingRepository))
-            {
-                return (TRepository)existingRepository;
-            }
-
-            if (!entityType.IsClass || entityType.IsAbstract || !typeof(IEntity).IsAssignableFrom(entityType))
+            if (entityType.IsAbstract)
             {
                 throw new InvalidOperationException($"Cannot create a repository for the type: {entityType.Name}");
             }
 
+            if (_repositories.TryGetValue(entityType, out IRepository? existingRepository))
+            {
+                if (existingRepository is null)
+                {
+                    throw new InvalidOperationException($"Repository for type {entityType.Name} is not initialized.");
+                }
+
+                return existingRepository;
+            }
+
             var genericRepositoryType = _repositoryType.MakeGenericType(entityType);
-            if (Activator.CreateInstance(genericRepositoryType, _context) is not TRepository newRepository)
+
+            var repositories = _repositoryAssemblies.Length > 0 ? genericRepositoryType.GetConcreteTypes(
+                filter: t => t.GetGenericTypeDefinition() == _repositoryType,
+                assemblies: _repositoryAssemblies) : [];
+
+            var repositoryConcreteType = repositories.Length != 0 ? repositories[0] : genericRepositoryType;
+
+            if (Activator.CreateInstance(repositoryConcreteType, _context) is not IRepository newRepository)
             {
                 throw new InvalidOperationException($"Failed to create an instance of repository type: {genericRepositoryType.Name}");
             }
 
             _repositories[entityType] = newRepository;
+
             return newRepository;
         }
 

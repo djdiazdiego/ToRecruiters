@@ -1,5 +1,4 @@
 ﻿using Core.Application.Exceptions;
-using System;
 
 namespace Core.Application.Helpers
 {
@@ -9,7 +8,7 @@ namespace Core.Application.Helpers
     public static class ExceptionHelpers
     {
         /// <summary>
-        /// Creates an exception based on the provided HTTP status code, message, and optional inner exception.
+        /// Creates an exception instance based on the provided HTTP status code, message, and optional inner exception.
         /// </summary>
         /// <param name="code">The HTTP status code.</param>
         /// <param name="message">The exception message.</param>
@@ -21,7 +20,7 @@ namespace Core.Application.Helpers
         /// <exception cref="NotFoundException">Thrown when the status code is 404.</exception>
         /// <exception cref="AlreadyExistsException">Thrown when the status code is 409.</exception>
         /// <exception cref="InternalServerErrorException">Thrown for all other status codes.</exception>
-        public static Exception CreateException(int code, string message, Exception? exception = null) => code switch
+        public static Exception FromHttpStatusCode(int code, string message, Exception? exception = null) => code switch
         {
             400 => new BadRequestException(message, exception),
             401 => new UnauthorizedAccessException(message, exception),
