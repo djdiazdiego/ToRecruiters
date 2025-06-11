@@ -1,5 +1,6 @@
 ﻿using Core.Application.Behaviors;
 using FluentValidation;
+using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -30,6 +31,9 @@ namespace Core.Application.Extensions
         /// <param name="assemblies">The assemblies to scan for AutoMapper profiles.</param>
         public static void AddAutoMapperServices(this IServiceCollection services, Assembly[] assemblies)
         {
+            // Register Mapster for object mapping
+            TypeAdapterConfig.GlobalSettings.Scan(assemblies);
+
             foreach (var assembly in assemblies)
             {
                 services.AddAutoMapper(assembly);

@@ -1,4 +1,5 @@
 ﻿using Core.BaseModels;
+using System;
 
 namespace Core.Application.Persistence
 {

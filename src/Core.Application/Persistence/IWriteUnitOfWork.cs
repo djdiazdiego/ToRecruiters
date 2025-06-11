@@ -1,4 +1,7 @@
 ﻿using Core.BaseModels;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Core.Application.Persistence
 {

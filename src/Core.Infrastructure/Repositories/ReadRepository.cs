@@ -8,7 +8,7 @@ namespace Core.Infrastructure.Repositories
     /// A repository for reading entities from the database.
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
-    public class ReadRepository<TEntity>(DbContext dbContext) : IReadRepository<TEntity>, IRepository where TEntity : class, IEntity
+    public abstract class ReadRepository<TEntity>(DbContext dbContext) : IReadRepository<TEntity>, IRepository where TEntity : class, IEntity
     {
         private readonly DbContext _context = dbContext;
 
@@ -17,6 +17,14 @@ namespace Core.Infrastructure.Repositories
         /// </summary>
         protected DbContext Context => _context;
 
+        /// <summary>
+        /// Gets an <see cref="IQueryable{TEntity}"/> for querying <typeparamref name="TEntity"/> entities from the database.
+        /// </summary>
+        protected IQueryable<TEntity> Query => _context.Set<TEntity>();
+
+        /// <inheritdoc />
+        IQueryable<TEntity> IReadRepository<TEntity>.Query => _context.Set<TEntity>();
+
         /// <inheritdoc />
         public async ValueTask<TEntity?> FindAsync(object[] keyValues, CancellationToken cancelationToken = default) =>
             await _context.Set<TEntity>().FindAsync(keyValues, cancelationToken);
@@ -24,7 +32,5 @@ namespace Core.Infrastructure.Repositories
         /// <inheritdoc />
         public TEntity? Find(object[] keyValues) => _context.Set<TEntity>().Find(keyValues);
 
-        /// <inheritdoc />
-        public IQueryable<TEntity> GetQuery() => _context.Set<TEntity>();
     }
 }

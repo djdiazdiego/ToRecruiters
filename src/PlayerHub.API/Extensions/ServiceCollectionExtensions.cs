@@ -1,36 +1,27 @@
-﻿using Core.Exceptions;
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+﻿using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 namespace PlayerHub.API.Extensions
 {
     /// <summary>
-    /// Provides extension methods for configuring services in the application.
+    /// Provides extension methods for registering services in the dependency injection container.
     /// </summary>
     internal static class ServiceCollectionExtensions
     {
         public const string PLAYER_HUB_CORS_POLICY = "PlayerHubCorsPolicy";
 
         /// <summary>
-        /// Adds API-related services to the service collection.
+        /// Configures and adds API-related services to the specified service collection.   
         /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        /// <param name="environment">The hosting environment.</param>
+        /// <remarks>This method adds services required for API functionality, including CORS and Swagger
+        /// support. The configuration of these services may vary depending on the provided hosting
+        /// environment.</remarks>
+        /// <param name="services">The <see cref="IServiceCollection"/> to which the API services will be added.</param>
+        /// <param name="environment">The <see cref="IHostEnvironment"/> representing the current hosting environment. Used to configure services
+        /// based on the environment.</param>
         public static void AddAPIServices(this IServiceCollection services, IHostEnvironment environment)
         {
-            services.AddLogging();
-            services.AddHttpContextAccessor();
-            services.AddControllerServices();
-            services.AddHstsServices();
             services.AddCorsServices(environment);
-            services.AddRateLimiterServices();
-            services.AddRouting(x => x.LowercaseUrls = true);
             services.AddSwaggerServices(environment);
         }
 
@@ -59,63 +50,6 @@ namespace PlayerHub.API.Extensions
                                     .SetIsOriginAllowedToAllowWildcardSubdomains();
                         }
                     });
-                });
-        }
-
-        /// <summary>
-        /// Configures controller-related services, including JSON serialization and OData.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        private static void AddControllerServices(this IServiceCollection services)
-        {
-            services.AddControllers()
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Local;
-                })
-                .ConfigureApiBehaviorOptions(options =>
-                {
-                    options.InvalidModelStateResponseFactory = context =>
-                    {
-                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<ActionContext>>();
-
-                        var errors = context.ModelState.Values.Where(v => v.Errors.Count > 0)
-                            .SelectMany(v => v.Errors)
-                            .Select(v => v.ErrorMessage.Trim([' ', '.']));
-
-                        string detail = string.Join(". ", errors);
-
-                        logger.LogError("Error Message: {exceptionMessage}, Time of occurrence {time}", detail, DateTime.UtcNow);
-
-                        var problemDetails = new ProblemDetails
-                        {
-                            Title = nameof(BadRequestException),
-                            Detail = detail,
-                            Status = StatusCodes.Status400BadRequest,
-                            Instance = context.HttpContext.Request.Path
-                        };
-
-                        problemDetails.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                        problemDetails.Extensions.Add("ValidationErrors", errors);
-
-                        var result = new BadRequestObjectResult(problemDetails);
-
-                        result.ContentTypes.Add("application/json");
-
-                        return result;
-                    };
-                }).AddOData(options =>
-                {
-                    options.Select()
-                        .Filter()
-                        .OrderBy()
-                        .Count()
-                        .SetMaxTop(5000)
-                        .Expand();
                 });
         }
 
@@ -207,36 +141,6 @@ namespace PlayerHub.API.Extensions
 
                 services.AddSwaggerGenNewtonsoftSupport();
             }
-        }
-
-        /// <summary>
-        /// Configures rate limiting services.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        private static void AddRateLimiterServices(this IServiceCollection services)
-        {
-            services.AddRateLimiter(options =>
-            {
-                options.AddFixedWindowLimiter("fixed", limiterOptions =>
-                {
-                    limiterOptions.Window = TimeSpan.FromMinutes(1);
-                    limiterOptions.PermitLimit = 100;
-                });
-            });
-        }
-
-        /// <summary>
-        /// Configures HSTS (HTTP Strict Transport Security) services.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        private static void AddHstsServices(this IServiceCollection services)
-        {
-            services.AddHsts(options =>
-            {
-                options.MaxAge = TimeSpan.FromDays(365);
-                options.IncludeSubDomains = true;
-                options.Preload = true;
-            });
         }
     }
 }

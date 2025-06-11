@@ -1,5 +1,4 @@
-﻿using Core.Exceptions;
-using Security;
+﻿using Core.Application.Exceptions;
 using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using IdentityAuthGuard.DTOs;
@@ -9,6 +8,7 @@ using IdentityAuthGuard.Services.GuidGeneratorServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Security;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;

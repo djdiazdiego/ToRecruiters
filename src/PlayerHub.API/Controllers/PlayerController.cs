@@ -1,14 +1,14 @@
-﻿using Security;
-using Core.Wrappers;
+﻿using Core.Wrappers;
 using IdentityAuthGuard.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using PlayerHub.Application.Commands;
 using PlayerHub.Application.DTOs.PlayerDTOs;
-using PlayerHub.Application.Queries;
+using PlayerHub.Application.Features.Commands;
+using PlayerHub.Application.Features.Queries;
 using PlayerHub.Domain;
+using Security;
 
 namespace PlayerHub.API.Controllers
 {

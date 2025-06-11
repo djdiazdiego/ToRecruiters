@@ -96,7 +96,7 @@ namespace Core.Wrappers
             Details = message;
             Data = data;
             PageNumber = pageNumber;
-            PageSize = pageSize;
+            PageSize = pageSize == 0 ? PageSize : pageSize;
             TotalRecords = totalRecords;
             TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
         }
@@ -114,19 +114,19 @@ namespace Core.Wrappers
 
         /// <inheritdoc />
         [DataMember]
-        public int PageNumber { get; set; }
+        public int PageNumber { get; set; } = 1;
 
         /// <inheritdoc />
         [DataMember]
-        public int PageSize { get; set; }
+        public int PageSize { get; set; } = 10;
 
         /// <inheritdoc />
         [DataMember]
-        public int TotalRecords { get; set; }
+        public int TotalRecords { get; set; } = 0;
 
         /// <inheritdoc />
         [DataMember]
-        public int TotalPages { get; set; }
+        public int TotalPages { get; set; } = 0;
 
         /// <inheritdoc />
         public static new PageResponse<TData> Ok(

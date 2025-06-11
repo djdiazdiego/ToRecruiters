@@ -1,4 +1,4 @@
-﻿using Core.Exceptions;
+﻿using Core.Application.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using System.Net;
 

@@ -1,4 +1,4 @@
-﻿using Core.Infrastructure;
+﻿using Core.Infrastructure.Common;
 using Core.Infrastructure.Factories;
 using IdentityAuthGuard.Constants;
 using Microsoft.EntityFrameworkCore;

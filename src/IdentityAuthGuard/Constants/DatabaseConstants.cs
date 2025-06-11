@@ -1,4 +1,4 @@
-﻿using Core.Infrastructure;
+﻿using Core.Infrastructure.Common;
 
 namespace IdentityAuthGuard.Constants
 {

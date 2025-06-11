@@ -1,10 +1,12 @@
 ﻿using Core.Application.Persistence;
+using Core.Infrastructure.Common;
 using Core.Infrastructure.Repositories;
 using Core.Infrastructure.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Reflection;
 
 namespace Core.Infrastructure.Extensions
 {
@@ -19,7 +21,10 @@ namespace Core.Infrastructure.Extensions
         /// <typeparam name="TReadDbContext">The type of the read DbContext.</typeparam>
         /// <typeparam name="TWriteDbContext">The type of the write DbContext.</typeparam>
         /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-        public static void AddUnitOfWorkServices<TReadDbContext, TWriteDbContext>(this IServiceCollection services)
+        /// <param name="repositoryAsemblies">An array of assemblies containing repositories.</param>
+        public static void AddUnitOfWorkServices<TReadDbContext, TWriteDbContext>(
+            this IServiceCollection services,
+            Assembly[] repositoryAsemblies)
             where TReadDbContext : DbContext
             where TWriteDbContext : DbContext
         {
@@ -27,14 +32,14 @@ namespace Core.Infrastructure.Extensions
             {
                 var factory = provider.GetRequiredService<IDbContextFactory<TReadDbContext>>();
 
-                return new UnitOfWork<TReadDbContext>(factory, typeof(ReadRepository<>));
+                return new UnitOfWork<TReadDbContext>(factory, typeof(ReadRepository<>), repositoryAsemblies);
             });
 
             services.AddScoped<IWriteUnitOfWork>(provider =>
             {
                 var factory = provider.GetRequiredService<IDbContextFactory<TWriteDbContext>>();
 
-                return new UnitOfWork<TWriteDbContext>(factory, typeof(WriteRepository<>));
+                return new UnitOfWork<TWriteDbContext>(factory, typeof(WriteRepository<>), repositoryAsemblies);
             });
         }
 

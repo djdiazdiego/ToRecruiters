@@ -8,7 +8,7 @@ namespace Core.Infrastructure.Repositories
     /// A repository for performing write operations on entities.
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
-    public sealed class WriteRepository<TEntity>(DbContext dbContext) :
+    public abstract class WriteRepository<TEntity>(DbContext dbContext) :
         ReadRepository<TEntity>(dbContext),
         IWriteRepository<TEntity> where TEntity : class, IEntity
     {

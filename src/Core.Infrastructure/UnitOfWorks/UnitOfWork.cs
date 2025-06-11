@@ -1,9 +1,8 @@
 ﻿using Core.Application.Persistence;
 using Core.BaseModels;
-using Core.Infrastructure.Repositories;
+using Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Core.Extensions;
 
 namespace Core.Infrastructure.UnitOfWorks
 {
@@ -27,30 +26,12 @@ namespace Core.Infrastructure.UnitOfWorks
         private readonly Dictionary<Type, IRepository> _repositories = [];
 
         /// <inheritdoc />
-        IWriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>()
-        {
-            var repository = GetRepository<TEntity>();
-
-            if (repository is not IWriteRepository<TEntity> writeRepository)
-            {
-                throw new InvalidOperationException($"Repository for type {typeof(TEntity).Name} is not a write repository.");
-            }
-
-            return writeRepository;
-        }
+        IWriteRepository<TEntity> IWriteUnitOfWork.GetRepository<TEntity>() =>
+            GetValidRepository<TEntity, IWriteRepository<TEntity>>();
 
         /// <inheritdoc />
-        IReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>()
-        {
-            var repository = GetRepository<TEntity>();
-
-            if (repository is not IReadRepository<TEntity> writeRepository)
-            {
-                throw new InvalidOperationException($"Repository for type {typeof(TEntity).Name} is not a read repository.");
-            }
-
-            return writeRepository;
-        }
+        IReadRepository<TEntity> IReadUnitOfWork.GetRepository<TEntity>() =>
+            GetValidRepository<TEntity, IReadRepository<TEntity>>();
 
         /// <inheritdoc />
         public int SaveChanges()
@@ -72,6 +53,11 @@ namespace Core.Infrastructure.UnitOfWorks
         /// <exception cref="InvalidOperationException">Thrown if the repository type is incorrect or cannot be created.</exception>
         private IRepository GetRepository<TEntity>() where TEntity : class, IEntity
         {
+            if (_repositoryAssemblies is null || _repositoryAssemblies.Length == 0)
+            {
+                throw new InvalidOperationException("Repository assemblies are not provided or empty.");
+            }
+
             var entityType = typeof(TEntity);
 
             if (entityType.IsAbstract)
@@ -91,11 +77,16 @@ namespace Core.Infrastructure.UnitOfWorks
 
             var genericRepositoryType = _repositoryType.MakeGenericType(entityType);
 
-            var repositories = _repositoryAssemblies.Length > 0 ? genericRepositoryType.GetConcreteTypes(
-                filter: t => t.GetGenericTypeDefinition() == _repositoryType,
-                assemblies: _repositoryAssemblies) : [];
+            var repositories = genericRepositoryType.GetConcreteTypes(
+                filter: t => t.BaseType == genericRepositoryType,
+                assemblies: _repositoryAssemblies) ?? [];
 
-            var repositoryConcreteType = repositories.Length != 0 ? repositories[0] : genericRepositoryType;
+            if (repositories.Length == 0)
+            {
+                throw new InvalidOperationException($"No concrete repository found for type: {genericRepositoryType.Name} in the provided assemblies.");
+            }
+
+            var repositoryConcreteType = repositories[0];
 
             if (Activator.CreateInstance(repositoryConcreteType, _context) is not IRepository newRepository)
             {
@@ -105,6 +96,27 @@ namespace Core.Infrastructure.UnitOfWorks
             _repositories[entityType] = newRepository;
 
             return newRepository;
+        }
+
+        /// <summary>
+        /// Retrieves a repository of the specified type for a specific entity type and ensures it is of the expected repository interface.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity.</typeparam>
+        /// <typeparam name="TRepository">The expected repository interface type.</typeparam>
+        /// <returns>An instance of the specified repository type for the given entity type.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the repository is not of the expected type.</exception>
+        private TRepository GetValidRepository<TEntity, TRepository>()
+            where TEntity : class, IEntity
+            where TRepository : IRepository
+        {
+            var repository = GetRepository<TEntity>();
+
+            if (repository is not TRepository validRepository)
+            {
+                throw new InvalidOperationException($"Repository for type {typeof(TEntity).Name} is not a valid repository.");
+            }
+
+            return validRepository;
         }
 
         /// <summary>

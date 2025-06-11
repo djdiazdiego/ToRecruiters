@@ -1,5 +1,5 @@
-﻿using Core.Exceptions;
-using Core.Exceptions.Extensions;
+﻿using Core.Application.Exceptions;
+using Core.Application.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;

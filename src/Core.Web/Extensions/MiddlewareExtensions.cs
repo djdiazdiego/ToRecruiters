@@ -1,4 +1,4 @@
-﻿using Core.Infrastructure;
+﻿using Core.Infrastructure.Common;
 using Core.Web.Extensions;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;

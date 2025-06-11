@@ -1,4 +1,4 @@
-using Core.Infrastructure;
+using Core.Infrastructure.Common;
 using Core.Infrastructure.Extensions;
 using Core.Web.Extensions;
 using IdentityAuthGuard.Constants;
@@ -6,9 +6,9 @@ using IdentityAuthGuard.Data.Contexts;
 using IdentityAuthGuard.Extensions;
 using PlayerHub.API.Extensions;
 using PlayerHub.Application.Extensions;
-using PlayerHub.Data;
-using PlayerHub.Data.Contexts;
-using PlayerHub.Data.Extensions;
+using PlayerHub.Infrastructure;
+using PlayerHub.Infrastructure.Contexts;
+using PlayerHub.Infrastructure.Extensions;
 using Security;
 using System.Reflection;
 
@@ -17,13 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register application services
 builder.Services.AddHealthChecksServices(builder.Configuration, Constants.CONNECTION_STRING, DbTypes.SqlServer); // Add health check services
-builder.Services.AddAPIServices(builder.Environment); // Add API-specific services
-builder.Services.AddDataServices(builder.Configuration); // Add data-related services
-builder.Services.AddApplicationServices(); // Add application-level services
+builder.Services.AddWebServices(); // Add web services for logging, routing, controllers, exception handling, HSTS, rate limiting, and OpenTelemetry.
+builder.Services.AddAPIServices(builder.Environment); // Add API-related services including CORS and Swagger
+builder.Services.AddInfrastructureServices(builder.Configuration); // Add infrastructure services including DbContext factories and unit of work services
+builder.Services.AddApplicationServices(); // Add application services for business logic and domain events
 builder.Services.AddIdentityAuthGuardServices(); // Add Identity and AuthGuard services
 builder.Services.AddAuthenticationServices(builder.Configuration); // Add authentication services
 builder.Services.AddAuthorizationServices(builder.Configuration); // Add authorization services
-builder.Services.AddGlobalExceptionHandlerServices(); // Registers global exception handler services for consistent error handling across the API
 
 // Build the application
 var app = builder.Build();
@@ -39,14 +39,15 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // Configure middleware for production environment
-    app.UseHsts(); // Enable HTTP Strict Transport Security
+    // Enable HTTP Strict Transport Security
+    app.UseHsts();
+
+    // Redirect HTTP requests to HTTPS
+    app.UseHttpsRedirection();
 }
 
 // Configure middleware for exception handling
 app.UseExceptionHandler();
-// Redirect HTTP requests to HTTPS
-app.UseHttpsRedirection();
 // Enable routing
 app.UseRouting();
 // Enable Cross-Origin Resource Sharing

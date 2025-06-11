@@ -8,12 +8,11 @@ namespace Core.Application.Persistence
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     public interface IReadRepository<TEntity> : IRepository where TEntity : class, IEntity
     {
-        /// <inheritdoc cref="IRepository"/>
         /// <summary>
         /// Gets a queryable collection of the entity.
         /// </summary>
         /// <returns>An <see cref="IQueryable{TEntity}"/> for querying the entity.</returns>
-        IQueryable<TEntity> GetQuery();
+        IQueryable<TEntity> Query { get; }
 
         /// <summary>
         /// Finds an entity asynchronously by its primary keys.
